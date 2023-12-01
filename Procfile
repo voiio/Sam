@@ -1,1 +1,1 @@
-bot: sam run
+bot: sam run slack
