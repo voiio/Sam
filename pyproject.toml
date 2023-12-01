@@ -45,6 +45,7 @@ name = "sam"
 
 [tool.setuptools_scm]
 write_to = "sam/_version.py"
+fallback_version = "1.0.0"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
