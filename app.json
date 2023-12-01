@@ -1,0 +1,44 @@
+{
+  "name": "Sam",
+  "description": "A GPT based slack bot trained to specific personalities and use cases.",
+  "repository": "https://github.com/voiio/Sam",
+  "logo": "https://node-js-sample-1234567890ab.herokuapp.com/node.png",
+  "keywords": [
+    "OpenAI",
+    "Slack",
+    "bot",
+    "GPT",
+    "AI"
+  ],
+  "website": "https://github.com/voiio/Sam",
+  "env": {
+    "SLACK_APP_TOKEN": {
+      "description": "Your Slack app's token, starting with 'xapp-'",
+      "required": true
+    },
+    "SLACK_BOT_TOKEN": {
+      "description": "Your Slack bot's token, starting with 'xoxb-'",
+      "required": true
+    },
+    "OPENAI_API_KEY": {
+      "description": "Your OpenAI API key.",
+      "required": true
+    },
+    "OPENAI_ASSISTANT_ID": {
+      "description": "Your OpenAI assistant ID, starting with 'asst_'",
+      "required": true
+    }
+  },
+  "formation": {
+    "bot": {
+      "quantity": 1,
+      "size": "standard-1x"
+    }
+  },
+  "addons": [
+    "heroku-redis:mini"
+  ],
+  "buildpacks": [
+    "heroku/python"
+  ]
+}

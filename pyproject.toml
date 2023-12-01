@@ -1,0 +1,72 @@
+[project]
+name = "Sam"
+authors = [
+  { name = "Johannes Maron", email = "johannes@maron.family" },
+]
+readme = "README.md"
+license = { file = "LICENSE" }
+keywords = ["GPT", "AI", "Slack", "OpenAI", "bot"]
+dynamic = ["version", "description"]
+
+requires-python = ">=3.12"
+dependencies = [
+  "click",
+  "redis",
+  "slack-bolt",
+  "openai"
+]
+
+[project.scripts]
+sam = "sam.__main__:cli"
+
+[project.optional-dependencies]
+test = [
+  "pytest",
+  "pytest-cov",
+]
+lint = [
+  "bandit==1.7.5",
+  "black==23.11.0",
+  "flake8==6.1.0",
+  "isort==5.12.0",
+  "pydocstyle[toml]==6.3.0",
+]
+
+[project.urls]
+Project-URL = "https://github.com/voiio/Sam"
+Changelog = "https://github.com/voiio/Sam/releases"
+
+[build-system]
+requires = ["flit-scm", "wheel"]
+build-backend = "flit_scm:buildapi"
+
+[tool.flit.module]
+name = "sam"
+
+[tool.setuptools_scm]
+write_to = "sam/_version.py"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+addopts = "--cov --tb=short -rxs"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["sam"]
+
+[tool.coverage.report]
+show_missing = true
+
+[tool.isort]
+atomic = true
+line_length = 88
+multi_line_output = 3
+force_grid_wrap = 0
+known_first_party = "sam, tests"
+include_trailing_comma = true
+use_parentheses = true
+default_section = "THIRDPARTY"
+combine_as_imports = true
+
+[tool.pydocstyle]
+add_ignore = "D1"
