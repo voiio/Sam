@@ -15,6 +15,10 @@ Sam uses OpenAI's assistant API to fine-tune ChatGPT to:
 
 to provide a work-colleague like experience.
 
+## Sneak peek of Sam in action
+
+![screenshot.png](screenshot.png)
+
 ## Installation
 1. Create a new Slack app, as described below.
 2. You will also need an OpenAI API key, which you can get from [here](https://platform.openai.com/api-keys).
