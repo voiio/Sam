@@ -2,7 +2,7 @@
   "name": "Sam",
   "description": "A GPT based slack bot trained to specific personalities and use cases.",
   "repository": "https://github.com/voiio/Sam",
-  "logo": "https://node-js-sample-1234567890ab.herokuapp.com/node.png",
+  "logo": "https://upload.wikimedia.org/wikipedia/commons/0/04/ChatGPT_logo.svg",
   "keywords": [
     "OpenAI",
     "Slack",
@@ -39,6 +39,8 @@
     "heroku-redis:mini"
   ],
   "buildpacks": [
-    "heroku/python"
+    {
+      "url": "heroku/python"
+    }
   ]
 }
