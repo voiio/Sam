@@ -8,7 +8,7 @@ license = { file = "LICENSE" }
 keywords = ["GPT", "AI", "Slack", "OpenAI", "bot"]
 dynamic = ["version", "description"]
 
-requires-python = ">=3.12"
+requires-python = ">=3.11"
 dependencies = [
   "click",
   "redis",
