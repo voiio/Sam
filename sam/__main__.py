@@ -11,13 +11,11 @@ from . import config
 @click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode.")
 def cli(verbose):
     """Sam – cuz your company is nothing with Sam."""
-    handler = logging.StreamHandler(sys.stderr)
-    handler.setFormatter(logging.Formatter("%(asctime)s %(clientip)-15s %(message)s"))
-    handler.setLevel("INFO")
-    level = logging.WARNING
-    if verbose:
-        level = logging.INFO
-    logging.basicConfig(level=level, handlers=[handler])
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+    logger = logging.getLogger("sam")
+    logger.addHandler(handler)
+    logger.setLevel(logging.DEBUG if verbose else logging.INFO)
 
 
 @cli.group(chain=True)

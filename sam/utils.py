@@ -16,14 +16,11 @@ def get_thread_id(slack_id) -> str:
     Get the thread from the user_id or channel.
 
     Args:
-        slack_id: The user_id or channel id, starting with a '@' or '#'.
+        slack_id: The user or channel id.
 
     Returns:
         The thread id.
     """
-    if slack_id[0] not in ["@", "#"]:
-        raise ValueError("The slack_id must start with a '@' or '#'.")
-
     thread_id = storage.get(slack_id)
     if thread_id:
         thread_id = thread_id.decode()
