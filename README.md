@@ -1,17 +1,17 @@
-# Sam – Your favorit colleague
+# Sam – Cuz your company is nothing without Sam
 
-A GPT based slack bot trained to specific personalities and use cases.
+Sam is a Slack bot that uses OpenAI's ChatGPT model to provide a work-colleague
+like experience, right in your Slack workspace.
 
-Highlights:
-* Customizable personality
-* Context aware and domain specific
-* Mention in a channel to get a response
-* Send a DM to get a response
-* Send images, spreadsheets, and other files to get a response
+Everyone in your company has instant access to the most powerful AI companion.
 
-Sam uses OpenAI's assistant API to align ChatGPT to a specific personality traits,
-provide domain specific knowledge and context to provide a work-colleague like
-experience.
+Sam uses OpenAI's assistant API to fine-tune ChatGPT to:
+
+* a specific personality traits,
+* provide domain specific knowledge
+* and company specific context
+
+to provide a work-colleague like experience.
 
 ## Installation
 1. Create a new Slack app, as described below.
