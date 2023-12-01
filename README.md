@@ -1,5 +1,7 @@
 # Sam – cuz your company is nothing without Sam
 
+![meme](https://repository-images.githubusercontent.com/726003479/24d020ac-3ac5-401c-beae-7a6103c4e7ae)
+
 Sam is a Slack bot that uses OpenAI's ChatGPT model to provide a work-colleague
 like experience, right in your Slack workspace.
 
