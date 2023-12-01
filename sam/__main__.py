@@ -10,7 +10,7 @@ from . import config
 @click.group()
 @click.option("-v", "--verbose", is_flag=True, help="Enables verbose mode.")
 def cli(verbose):
-    """Set of commands to fill our data warehouse."""
+    """Sam – cuz your company is nothing with Sam."""
     handler = logging.StreamHandler(sys.stderr)
     handler.setFormatter(logging.Formatter("%(asctime)s %(clientip)-15s %(message)s"))
     handler.setLevel("INFO")
@@ -22,13 +22,12 @@ def cli(verbose):
 
 @cli.group(chain=True)
 def run():
-    """Runs an assistent bot."""
-    pass
+    """Run an assistent bot, currently only Slack is supported."""
 
 
 @run.command()
 def slack():
-    """Runs a Slack bot."""
+    """Run the Slack bot demon."""
     from .slack import app
 
     SocketModeHandler(app, config.SLACK_APP_TOKEN).start()

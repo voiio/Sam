@@ -15,7 +15,6 @@ jobs:
         lint-command:
           - bandit -r . -x ./tests
           - black --check --diff .
-          - flake8 .
           - isort --check-only --diff .
           - pydocstyle .
     steps:

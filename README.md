@@ -1,4 +1,4 @@
-# Sam – Cuz your company is nothing without Sam
+# Sam – cuz your company is nothing without Sam
 
 Sam is a Slack bot that uses OpenAI's ChatGPT model to provide a work-colleague
 like experience, right in your Slack workspace.
