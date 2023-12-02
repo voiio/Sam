@@ -47,6 +47,7 @@ def process_run(event: {str, Any}, say: Say):
         thread_id=thread_id,
         assistant_id=config.OPENAI_ASSISTANT_ID,
     )
+    msg = say(f":speech_balloon:", mrkdwn=True)
     logger.info(f"User={user_id} started Run={run.id} for Thread={thread_id}")
     cycle = 0
     while run.status in ["queued", "in_progress"]:
@@ -54,7 +55,9 @@ def process_run(event: {str, Any}, say: Say):
         time.sleep(2**cycle)
     if run.status != "completed":
         logger.error(run.last_error)
-        say(f"🤖 {run.last_error.message}")
+        say(
+            f"🤖 {run.last_error.message}",
+        )
         logger.error(f"Run {run.id} {run.status} for Thread {thread_id}")
         logger.error(run.last_error.message)
         return
@@ -63,7 +66,12 @@ def process_run(event: {str, Any}, say: Say):
     messages = client.beta.threads.messages.list(thread_id=thread_id)
     for message in messages:
         if message.role == "assistant":
-            say(message.content[0].text.value, mrkdwn=True)
+            say.client.chat_update(
+                channel=say.channel,
+                ts=msg["ts"],
+                text=message.content[0].text.value,
+                mrkdwn=True,
+            )
             logger.info(f"Sam responded to the User={user_id} in Channel={channel_id}")
             break
 
