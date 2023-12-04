@@ -1,6 +1,8 @@
+import io
 import json
 import logging
 import time
+import urllib.request
 from typing import Any
 
 from openai import OpenAI
@@ -30,7 +32,28 @@ def handle_message(event: {str, Any}, say: Say):
     text = event["text"]
     text = text.replace(f"<@{USER_HANDLE}>", "Sam")
     thread_id = utils.get_thread_id(channel_id)
-    client.beta.threads.messages.create(thread_id=thread_id, content=text, role="user")
+    file_ids = []
+    if "files" in event:
+        for file in event["files"]:
+            req = urllib.request.Request(
+                file["url_private_download"],
+                headers={"Authorization": f"Bearer {config.SLACK_BOT_TOKEN}"},
+            )
+            with urllib.request.urlopen(req) as response:  # nosec
+                file_ids.append(
+                    client.files.create(
+                        file=(file["name"], response.read()), purpose="assistants"
+                    ).id
+                )
+                logger.info(
+                    f"User={user_id} added File={file_ids[-1]} to Thread={thread_id}"
+                )
+    client.beta.threads.messages.create(
+        thread_id=thread_id,
+        content=text,
+        role="user",
+        file_ids=file_ids,
+    )
     logger.info(
         f"User={user_id} added Message={client_msg_id} added to Thread={thread_id}"
     )
