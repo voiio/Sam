@@ -1,4 +1,3 @@
-import itertools
 import json
 import logging
 import time
@@ -72,11 +71,11 @@ def process_run(event: {str, Any}, say: Say):
     )
     msg = say(f":speech_balloon:", mrkdwn=True)
     logger.info(f"User={user_id} started Run={run.id} for Thread={thread_id}")
-    for i in itertools.count():
-        if run.status not in ["queued", "in_progress"] or i > 16:
+    for i in range(14):  # ~ 10 minutes
+        if run.status not in ["queued", "in_progress"]:
             break
+        time.sleep(min(2**i, 60))  # exponential backoff capped at 60 seconds
         run = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
-        time.sleep(min(2**i, 10))
     if run.status == "failed":
         logger.error(run.last_error)
         say.client.chat_update(
@@ -89,7 +88,7 @@ def process_run(event: {str, Any}, say: Say):
         logger.error(run.last_error.message)
         return
     elif run.status != "completed":
-        logger.error(f"Run {run.id} {run.status} for Thread {thread_id}")
+        logger.error(f"Run={run.id} {run.status} for Thread {thread_id}")
         say.client.chat_update(
             channel=say.channel,
             ts=msg["ts"],
