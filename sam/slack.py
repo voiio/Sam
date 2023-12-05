@@ -56,7 +56,7 @@ def handle_message(event: {str, Any}, say: Say):
     logger.info(
         f"User={user_id} added Message={client_msg_id} added to Thread={thread_id}"
     )
-    if channel_type == "im":
+    if channel_type == "im" or event.get("parent_user_id") == USER_HANDLE:
         process_run(event, say)
 
 
@@ -64,12 +64,13 @@ def process_run(event: {str, Any}, say: Say):
     logger.debug(f"process_run={json.dumps(event)}")
     channel_id = event["channel"]
     user_id = event["user"]
+    thread_ts = event.get("thread_ts")
     thread_id = utils.get_thread_id(channel_id)
     run = client.beta.threads.runs.create(
         thread_id=thread_id,
         assistant_id=config.OPENAI_ASSISTANT_ID,
     )
-    msg = say(f":speech_balloon:", mrkdwn=True)
+    msg = say(f":speech_balloon:", mrkdwn=True, thread_ts=thread_ts)
     logger.info(f"User={user_id} started Run={run.id} for Thread={thread_id}")
     for i in range(14):  # ~ 10 minutes
         if run.status not in ["queued", "in_progress"]:
