@@ -1,4 +1,4 @@
-import io
+import itertools
 import json
 import logging
 import time
@@ -72,14 +72,18 @@ def process_run(event: {str, Any}, say: Say):
     )
     msg = say(f":speech_balloon:", mrkdwn=True)
     logger.info(f"User={user_id} started Run={run.id} for Thread={thread_id}")
-    cycle = 0
-    while run.status in ["queued", "in_progress"]:
+    for i in itertools.count():
+        if run.status not in ["queued", "in_progress"] or i > 10:
+            break
         run = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
-        time.sleep(2**cycle)
+        time.sleep(min(2**i, 10))
     if run.status != "completed":
         logger.error(run.last_error)
-        say(
-            f"🤖 {run.last_error.message}",
+        say.client.chat_update(
+            channel=say.channel,
+            ts=msg["ts"],
+            text=f"🤖 {run.last_error.message}",
+            mrkdwn=True,
         )
         logger.error(f"Run {run.id} {run.status} for Thread {thread_id}")
         logger.error(run.last_error.message)
