@@ -114,11 +114,12 @@ def process_run(event: {str, Any}, say: Say, voice_prompt: bool = False):
     messages = client.beta.threads.messages.list(thread_id=thread_id)
     for message in messages:
         if message.role == "assistant":
+            message_content = message.content[0].text
             if voice_prompt:
                 response = client.audio.speech.create(
                     model="tts-1-hd",
                     voice="alloy",
-                    input=message.content[0].text.value,
+                    input=message_content.value,
                 )
                 say.client.files_upload(
                     content=response.read(),
@@ -128,10 +129,31 @@ def process_run(event: {str, Any}, say: Say, voice_prompt: bool = False):
                 logger.info(
                     f"Sam responded to the User={user_id} in Channel={channel_id} via Voice"
                 )
+            else:
+                annotations = message_content.annotations
+                citations = []
+
+                # Iterate over the annotations and add footnotes
+                for index, annotation in enumerate(annotations):
+                    message_content.value = message_content.value.replace(
+                        annotation.text, f" [{index}]"
+                    )
+
+                    if file_citation := getattr(annotation, "file_citation", None):
+                        cited_file = client.files.retrieve(file_citation.file_id)
+                        citations.append(
+                            f"[{index}] {file_citation.quote} — {cited_file.filename}"
+                        )
+                    elif file_path := getattr(annotation, "file_path", None):
+                        cited_file = client.files.retrieve(file_path.file_id)
+                        citations.append(f"[{index}]({cited_file.filename})")
+
+                # Add footnotes to the end of the message before displaying to user
+                message_content.value += "\n" + "\n".join(citations)
             say.client.chat_update(
                 channel=say.channel,
                 ts=msg["ts"],
-                text=message.content[0].text.value,
+                text=message_content.value,
                 mrkdwn=True,
             )
             logger.info(
