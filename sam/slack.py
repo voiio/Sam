@@ -16,6 +16,8 @@ app = App(token=config.SLACK_BOT_TOKEN)
 
 USER_HANDLE = None
 
+AUDIO_FORMATS = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"]
+
 
 def handle_message(event: {str, Any}, say: Say):
     logger.debug(f"handle_message={json.dumps(event)}")
@@ -32,21 +34,31 @@ def handle_message(event: {str, Any}, say: Say):
     text = text.replace(f"<@{USER_HANDLE}>", "Sam")
     thread_id = utils.get_thread_id(channel_id)
     file_ids = []
+    voice_prompt = False
     if "files" in event:
         for file in event["files"]:
             req = urllib.request.Request(
-                file["url_private_download"],
+                file["url_private"],
                 headers={"Authorization": f"Bearer {config.SLACK_BOT_TOKEN}"},
             )
             with urllib.request.urlopen(req) as response:  # nosec
-                file_ids.append(
-                    client.files.create(
-                        file=(file["name"], response.read()), purpose="assistants"
-                    ).id
-                )
-                logger.info(
-                    f"User={user_id} added File={file_ids[-1]} to Thread={thread_id}"
-                )
+                if file["filetype"] in AUDIO_FORMATS:
+                    text += "\n" + client.audio.transcriptions.create(
+                        model="whisper-1",
+                        file=(file["name"], response.read()),
+                        response_format="text",
+                    )
+                    logger.info(f"User={user_id} added Audio={file['id']}")
+                    voice_prompt = True
+                else:
+                    file_ids.append(
+                        client.files.create(
+                            file=(file["name"], response.read()), purpose="assistants"
+                        ).id
+                    )
+                    logger.info(
+                        f"User={user_id} added File={file_ids[-1]} to Thread={thread_id}"
+                    )
     client.beta.threads.messages.create(
         thread_id=thread_id,
         content=text,
@@ -57,10 +69,10 @@ def handle_message(event: {str, Any}, say: Say):
         f"User={user_id} added Message={client_msg_id} added to Thread={thread_id}"
     )
     if channel_type == "im" or event.get("parent_user_id") == USER_HANDLE:
-        process_run(event, say)
+        process_run(event, say, voice_prompt=voice_prompt)
 
 
-def process_run(event: {str, Any}, say: Say):
+def process_run(event: {str, Any}, say: Say, voice_prompt: bool = False):
     logger.debug(f"process_run={json.dumps(event)}")
     channel_id = event["channel"]
     user_id = event["user"]
@@ -102,13 +114,29 @@ def process_run(event: {str, Any}, say: Say):
     messages = client.beta.threads.messages.list(thread_id=thread_id)
     for message in messages:
         if message.role == "assistant":
+            if voice_prompt:
+                response = client.audio.speech.create(
+                    model="tts-1-hd",
+                    voice="alloy",
+                    input=message.content[0].text.value,
+                )
+                say.client.files_upload(
+                    content=response.read(),
+                    channels=say.channel,
+                    ts=msg["ts"],
+                )
+                logger.info(
+                    f"Sam responded to the User={user_id} in Channel={channel_id} via Voice"
+                )
             say.client.chat_update(
                 channel=say.channel,
                 ts=msg["ts"],
                 text=message.content[0].text.value,
                 mrkdwn=True,
             )
-            logger.info(f"Sam responded to the User={user_id} in Channel={channel_id}")
+            logger.info(
+                f"Sam responded to the User={user_id} in Channel={channel_id} via Text"
+            )
             break
 
 
