@@ -27,6 +27,11 @@
     "OPENAI_ASSISTANT_ID": {
       "description": "Your OpenAI assistant ID, starting with 'asst_'",
       "required": true
+    },
+    "RANDOM_RUN_RATIO": {
+      "description": "The ratio of random GPT runs in Group Chats w/o mentions. 0.5 means 50% of the time, the bot will run a random response, and 50% of the time, the bot will run a GPT response.",
+      "required": false,
+      "value": "0.1"
     }
   },
   "formation": {
