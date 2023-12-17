@@ -1,5 +1,6 @@
 import json
 import logging
+import random  # nosec
 import time
 import urllib.request
 from typing import Any
@@ -68,7 +69,11 @@ def handle_message(event: {str, Any}, say: Say):
     logger.info(
         f"User={user_id} added Message={client_msg_id} added to Thread={thread_id}"
     )
-    if channel_type == "im" or event.get("parent_user_id") == USER_HANDLE:
+    if (
+        channel_type == "im"
+        or event.get("parent_user_id") == USER_HANDLE
+        or random.random() < config.RANDOM_RUN_RATIO  # nosec
+    ):
         process_run(event, say, voice_prompt=voice_prompt)
 
 
