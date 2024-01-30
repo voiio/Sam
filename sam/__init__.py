@@ -5,6 +5,7 @@ Sam uses OpenAI's assistant API to align ChatGPT to a specific personality trait
 provide domain specific knowledge and context to provide a work-colleague like
 experience.
 """
+
 from . import _version
 
 __version__ = _version.version
