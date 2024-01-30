@@ -25,7 +25,7 @@ test = [
   "pytest-cov",
 ]
 lint = [
-  "bandit==1.7.6",
+  "bandit==1.7.7",
   "black==23.12.1",
   "isort==5.13.2",
   "pydocstyle[toml]==6.3.0",
