@@ -8,6 +8,7 @@ from typing import Any
 
 from openai import OpenAI
 from slack_bolt import App, Say
+from slack_sdk.models.blocks import MarkdownTextObject, SectionBlock
 
 from . import config, utils
 
@@ -104,10 +105,10 @@ def process_run(event: {str, Any}, say: Say, voice_prompt: bool = False):
         )
         msg = say(f":speech_balloon:", mrkdwn=True, thread_ts=thread_ts)
         logger.info(f"User={user_id} started Run={run.id} for Thread={thread_id}")
-        for i in range(14):  # ~ 10 minutes
+        for i in range(14):  # ~ 5 minutes
             if run.status not in ["queued", "in_progress"]:
                 break
-            time.sleep(min(2**i, 60))  # exponential backoff capped at 60 seconds
+            time.sleep(min(2**i, 30))  # exponential backoff capped at 30 seconds
             run = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
         if run.status == "failed":
             logger.error(run.last_error)
@@ -173,9 +174,12 @@ def process_run(event: {str, Any}, say: Say, voice_prompt: bool = False):
                     message_content.value += "\n" + "\n".join(citations)
                 say.client.chat_update(
                     channel=say.channel,
+                    text=message_content.value.splitlines()[0],
                     ts=msg["ts"],
-                    text=message_content.value,
-                    mrkdwn=True,
+                    blocks=[
+                        SectionBlock(fields=[MarkdownTextObject.from_str(v)])
+                        for v in message_content.value.split("\n\n")
+                    ],
                 )
                 logger.info(
                     f"Sam responded to the User={user_id} in Channel={channel_id} via Text"
