@@ -8,7 +8,6 @@ from typing import Any
 
 from openai import OpenAI
 from slack_bolt import App, Say
-from slack_sdk.models.blocks import MarkdownTextObject, SectionBlock
 
 from . import config, utils
 
@@ -91,11 +90,33 @@ def handle_message(event: {str, Any}, say: Say):
             ).start()
 
 
+ACKNOWLEDGMENT_SMILEYS = [
+    "thumbsup",
+    "ok_hand",
+    "eyes",
+    "wave",
+    "robot_face",
+    "salute_face",
+    "v",
+    "yawning_face",
+    "100",
+    "muscle",
+    "thought_balloon",
+    "zzz",
+    "speech_balloon",
+    "space_invader",
+    "call_me_hand",
+]
+
+
 def process_run(event: {str, Any}, say: Say, voice_prompt: bool = False):
     logger.debug(f"process_run={json.dumps(event)}")
     channel_id = event["channel"]
     user_id = event["user"]
-    thread_ts = event.get("thread_ts")
+    try:
+        ts = event["ts"]
+    except KeyError:
+        ts = event["thread_ts"]
     thread_id = utils.get_thread_id(channel_id)
     # We may wait for the messages being processed, before starting a new run
     with utils.storage.lock(thread_id, timeout=10 * 60):  # 10 minutes
@@ -103,7 +124,11 @@ def process_run(event: {str, Any}, say: Say, voice_prompt: bool = False):
             thread_id=thread_id,
             assistant_id=config.OPENAI_ASSISTANT_ID,
         )
-        msg = say(f":speech_balloon:", mrkdwn=True, thread_ts=thread_ts)
+        say.client.reactions_add(
+            channel=channel_id,
+            name=random.choice(ACKNOWLEDGMENT_SMILEYS),  # nosec
+            timestamp=ts,
+        )
         logger.info(f"User={user_id} started Run={run.id} for Thread={thread_id}")
         for i in range(14):  # ~ 5 minutes
             if run.status not in ["queued", "in_progress"]:
@@ -112,22 +137,18 @@ def process_run(event: {str, Any}, say: Say, voice_prompt: bool = False):
             run = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
         if run.status == "failed":
             logger.error(run.last_error)
-            say.client.chat_update(
+            say(
                 channel=say.channel,
-                ts=msg["ts"],
-                text=f"🤖 {run.last_error.message}",
-                mrkdwn=True,
+                text="🤖 {run.last_error.message}",
             )
             logger.error(f"Run {run.id} {run.status} for Thread {thread_id}")
             logger.error(run.last_error.message)
             return
         elif run.status != "completed":
             logger.error(f"Run={run.id} {run.status} for Thread {thread_id}")
-            say.client.chat_update(
+            say(
                 channel=say.channel,
-                ts=msg["ts"],
-                text=f"🤯",
-                mrkdwn=True,
+                text="🤯",
             )
             return
         logger.info(f"Run={run.id} {run.status} for Thread={thread_id}")
@@ -136,6 +157,42 @@ def process_run(event: {str, Any}, say: Say, voice_prompt: bool = False):
         for message in messages:
             if message.role == "assistant":
                 message_content = message.content[0].text
+
+                annotations = message_content.annotations
+                citations = []
+
+                # Iterate over the annotations and add footnotes
+                for index, annotation in enumerate(annotations):
+                    message_content.value = message_content.value.replace(
+                        annotation.text, f" [{index}]"
+                    )
+
+                    if file_citation := getattr(annotation, "file_citation", None):
+                        cited_file = client.files.retrieve(file_citation.file_id)
+                        citations.append(
+                            f"[{index}] {file_citation.quote} — {cited_file.filename}"
+                        )
+                    elif file_path := getattr(annotation, "file_path", None):
+                        cited_file = client.files.retrieve(file_path.file_id)
+                        citations.append(f"[{index}]({cited_file.filename})")
+
+                # Add footnotes to the end of the message before displaying to user
+                message_content.value += "\n" + "\n".join(citations)
+
+                try:
+                    msg = say(
+                        channel=say.channel,
+                        text=message_content.value,
+                        mrkdwn=True,
+                    )
+                except ValueError as e:
+                    logger.exception("Failed to send message")
+                    say(
+                        channel=say.channel,
+                        text="🤯",
+                    )
+                    return
+
                 if voice_prompt:
                     response = client.audio.speech.create(
                         model="tts-1-hd",
@@ -145,42 +202,13 @@ def process_run(event: {str, Any}, say: Say, voice_prompt: bool = False):
                     say.client.files_upload(
                         content=response.read(),
                         channels=say.channel,
-                        thread_ts=thread_ts,
+                        thread_ts=ts,
                         ts=msg["ts"],
                     )
                     logger.info(
                         f"Sam responded to the User={user_id} in Channel={channel_id} via Voice"
                     )
-                else:
-                    annotations = message_content.annotations
-                    citations = []
 
-                    # Iterate over the annotations and add footnotes
-                    for index, annotation in enumerate(annotations):
-                        message_content.value = message_content.value.replace(
-                            annotation.text, f" [{index}]"
-                        )
-
-                        if file_citation := getattr(annotation, "file_citation", None):
-                            cited_file = client.files.retrieve(file_citation.file_id)
-                            citations.append(
-                                f"[{index}] {file_citation.quote} — {cited_file.filename}"
-                            )
-                        elif file_path := getattr(annotation, "file_path", None):
-                            cited_file = client.files.retrieve(file_path.file_id)
-                            citations.append(f"[{index}]({cited_file.filename})")
-
-                    # Add footnotes to the end of the message before displaying to user
-                    message_content.value += "\n" + "\n".join(citations)
-                say.client.chat_update(
-                    channel=say.channel,
-                    text=message_content.value.splitlines()[0],
-                    ts=msg["ts"],
-                    blocks=[
-                        SectionBlock(fields=[MarkdownTextObject.from_str(v)])
-                        for v in message_content.value.split("\n\n")
-                    ],
-                )
                 logger.info(
                     f"Sam responded to the User={user_id} in Channel={channel_id} via Text"
                 )
