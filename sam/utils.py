@@ -4,6 +4,7 @@ import inspect
 import os
 import re
 import smtplib
+import ssl
 import urllib.parse
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -97,7 +98,11 @@ def send_email(to: str, subject: str, body: str):
         return "Email not sent. The recipient is not in the whitelist."
     urllib.parse.uses_netloc.append("smtps")
     url = urllib.parse.urlparse(email_url)
+    context = ssl.create_default_context()
     with smtplib.SMTP_SSL(url.hostname, url.port) as server:
+        server.ehlo()
+        server.starttls(context=context)
+        server.ehlo()
         server.login(url.username, url.password)
         msg = MIMEMultipart()
         msg["From"] = url.username
