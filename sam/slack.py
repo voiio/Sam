@@ -123,6 +123,7 @@ def process_run(event: {str, Any}, say: Say, voice_prompt: bool = False):
         run = client.beta.threads.runs.create(
             thread_id=thread_id,
             assistant_id=config.OPENAI_ASSISTANT_ID,
+            tools=[utils.func_to_tool(utils.send_email)],
         )
         say.client.reactions_add(
             channel=channel_id,
@@ -131,8 +132,33 @@ def process_run(event: {str, Any}, say: Say, voice_prompt: bool = False):
         )
         logger.info(f"User={user_id} started Run={run.id} for Thread={thread_id}")
         for i in range(14):  # ~ 5 minutes
-            if run.status not in ["queued", "in_progress"]:
+            if run.status not in ["queued", "in_progress", "requires_action"]:
                 break
+            if (
+                run.required_action
+                and run.required_action.submit_tool_outputs
+                and run.required_action.submit_tool_outputs.tool_calls
+            ):
+                tool_outputs = []
+
+                for tool_call in run.required_action.submit_tool_outputs.tool_calls:
+                    logger.info(
+                        f"Tool Call={tool_call.id} Function={tool_call.function.name}"
+                    )
+                    logger.debug(f"Tool Call={tool_call.id} Arguments={tool_call.function.arguments}")
+                    kwargs = json.loads(tool_call.function.arguments)
+                    tool_outputs.append(
+                        {
+                            "tool_call_id": tool_call.id,  # noqa
+                            "output": utils.send_email(**kwargs),
+                        }
+                    )
+
+                client.beta.threads.runs.submit_tool_outputs(
+                    run.id,  # noqa
+                    thread_id=thread_id,
+                    tool_outputs=tool_outputs,
+                )
             time.sleep(min(2**i, 30))  # exponential backoff capped at 30 seconds
             run = client.beta.threads.runs.retrieve(thread_id=thread_id, run_id=run.id)
         if run.status == "failed":
