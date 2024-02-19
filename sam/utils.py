@@ -92,23 +92,23 @@ def send_email(to: str, subject: str, body: str):
         body: The body of the email.
     """
     email_url = os.getenv("EMAIL_URL")
-    from_email = os.getenv("FROM_EMAIL")
+    from_email = os.getenv("FROM_EMAIL", "sam@voiio.de")
     email_white_list = os.getenv("EMAIL_WHITE_LIST")
     if email_white_list and not re.match(email_white_list, to):
         return "Email not sent. The recipient is not in the whitelist."
     urllib.parse.uses_netloc.append("smtps")
     url = urllib.parse.urlparse(email_url)
     context = ssl.create_default_context()
-    with smtplib.SMTP_SSL(url.hostname, url.port) as server:
+    with smtplib.SMTP(url.hostname, url.port) as server:
         server.ehlo()
         server.starttls(context=context)
         server.ehlo()
         server.login(url.username, url.password)
         msg = MIMEMultipart()
-        msg["From"] = url.username
+        msg["From"] = f"Sam <{from_email}>"
         msg["To"] = to
         msg["Subject"] = subject
         msg.attach(MIMEText(body, "plain"))
-        server.sendmail(from_email, to, msg.as_string())
+        server.sendmail(from_email, [to], msg.as_string())
 
     return "Email sent successfully!"
