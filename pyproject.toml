@@ -13,7 +13,8 @@ dependencies = [
   "click",
   "redis",
   "slack-bolt",
-  "openai"
+  "openai",
+  "pyyaml",
 ]
 
 [project.scripts]
