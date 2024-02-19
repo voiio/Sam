@@ -145,7 +145,9 @@ def process_run(event: {str, Any}, say: Say, voice_prompt: bool = False):
                     logger.info(
                         f"Tool Call={tool_call.id} Function={tool_call.function.name}"
                     )
-                    logger.debug(f"Tool Call={tool_call.id} Arguments={tool_call.function.arguments}")
+                    logger.debug(
+                        f"Tool Call={tool_call.id} Arguments={tool_call.function.arguments}"
+                    )
                     kwargs = json.loads(tool_call.function.arguments)
                     tool_outputs.append(
                         {
