@@ -1,3 +1,4 @@
+import datetime
 import enum
 import functools
 import inspect
@@ -60,7 +61,6 @@ def func_to_tool(fn: callable) -> dict:
     }
 
 
-@functools.lru_cache
 def get_thread_id(slack_id) -> str:
     """
     Get the thread from the user_id or channel.
@@ -77,7 +77,11 @@ def get_thread_id(slack_id) -> str:
     else:
         thread_id = openai.beta.threads.create().id
 
-    storage.set(slack_id, thread_id)
+    midnight = datetime.datetime.combine(
+        datetime.date.today(), datetime.time.max, tzinfo=config.TIMEZONE
+    )
+
+    storage.set(slack_id, thread_id, exat=int(midnight.timestamp()))
 
     return thread_id
 
