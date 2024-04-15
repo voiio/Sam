@@ -1,6 +1,5 @@
 import datetime
 import enum
-import functools
 import inspect
 import json
 import logging
@@ -14,7 +13,10 @@ from email.mime.text import MIMEText
 
 import openai
 import redis
+import requests
 import yaml
+from bs4 import ParserRejectedMarkup
+from markdownify import markdownify as md
 
 from . import config
 from .contrib import brave
@@ -152,3 +154,28 @@ def web_search(query: str) -> str:
             return json.dumps(
                 {result["title"]: result["url"] for result in results["results"]}
             )
+
+
+def fetch_website(url: str) -> str:
+    """
+    Fetch the website for the given URL and return the content as Markdown.
+
+    Args:
+        url: The URL of the website to fetch.
+    """
+    try:
+        response = requests.get(url, timeout=10)
+    except requests.RequestException:
+        logger.exception("Failed to fetch website: %s", url)
+        return "failed to fetch website"
+    else:
+        try:
+            response.raise_for_status()
+        except requests.HTTPError:
+            logger.exception("Failed to fetch website: %s", url)
+            return "failed to fetch website"
+        else:
+            try:
+                return md(response.text)
+            except ParserRejectedMarkup:
+                return "failed to parse website"

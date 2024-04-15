@@ -125,6 +125,7 @@ def process_run(event: {str, Any}, say: Say, voice_prompt: bool = False):
             tools=[
                 utils.func_to_tool(utils.send_email),
                 utils.func_to_tool(utils.web_search),
+                utils.func_to_tool(utils.fetch_website),
             ],
         )
         say.client.reactions_add(
