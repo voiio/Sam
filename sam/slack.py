@@ -122,7 +122,10 @@ def process_run(event: {str, Any}, say: Say, voice_prompt: bool = False):
         run = client.beta.threads.runs.create(
             thread_id=thread_id,
             assistant_id=config.OPENAI_ASSISTANT_ID,
-            tools=[utils.func_to_tool(utils.send_email)],
+            tools=[
+                utils.func_to_tool(utils.send_email),
+                utils.func_to_tool(utils.web_search),
+            ],
         )
         say.client.reactions_add(
             channel=channel_id,
