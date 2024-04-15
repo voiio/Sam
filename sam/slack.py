@@ -102,7 +102,6 @@ ACKNOWLEDGMENT_SMILEYS = [
     "100",
     "muscle",
     "thought_balloon",
-    "zzz",
     "speech_balloon",
     "space_invader",
     "call_me_hand",
