@@ -96,7 +96,7 @@ ACKNOWLEDGMENT_SMILEYS = [
     "eyes",
     "wave",
     "robot_face",
-    "salute_face",
+    "saluting_face",
     "v",
     "yawning_face",
     "100",
