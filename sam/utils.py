@@ -2,6 +2,8 @@ import datetime
 import enum
 import functools
 import inspect
+import json
+import logging
 import os
 import re
 import smtplib
@@ -15,6 +17,9 @@ import redis
 import yaml
 
 from . import config
+from .contrib import brave
+
+logger = logging.getLogger(__name__)
 
 __all__ = ["get_thread_id", "storage", "func_to_tool", "send_email"]
 
@@ -116,3 +121,34 @@ def send_email(to: str, subject: str, body: str):
         server.sendmail(from_email, [to], msg.as_string())
 
     return "Email sent successfully!"
+
+
+def web_search(query: str) -> str:
+    """
+    Search the internet for information that matches the given query.
+
+    The search is location aware and will return results based on the user's location.
+
+    Args:
+        query: The query to search for.
+    """
+    with brave.get_client() as api:
+        if config.BRAVE_SEARCH_LATITUDE and config.BRAVE_SEARCH_LONGITUDE:
+            api.headers.update(
+                {
+                    "X-Loc-Lat": config.BRAVE_SEARCH_LATITUDE,
+                    "X-Loc-Long": config.BRAVE_SEARCH_LONGITUDE,
+                }
+            )
+        try:
+            results = api.search(query)["web"]
+        except brave.BraveSearchAPIError:
+            logger.exception("Failed to search the web for query: %s", query)
+            return "search failed"
+        else:
+            if not results["results"]:
+                logger.warning("No results found for query: %s", query)
+                return "no results found"
+            return json.dumps(
+                {result["title"]: result["url"] for result in results["results"]}
+            )

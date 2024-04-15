@@ -12,6 +12,7 @@ requires-python = ">=3.11"
 dependencies = [
   "click",
   "redis",
+  "requests",
   "slack-bolt",
   "openai",
   "pyyaml",
