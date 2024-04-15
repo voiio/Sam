@@ -150,11 +150,12 @@ def process_run(event: {str, Any}, say: Say, voice_prompt: bool = False):
                     logger.debug(
                         f"Tool Call={tool_call.id} Arguments={tool_call.function.arguments}"
                     )
+                    fn = getattr(utils, tool_call.function.name)
                     kwargs = json.loads(tool_call.function.arguments)
                     tool_outputs.append(
                         {
                             "tool_call_id": tool_call.id,  # noqa
-                            "output": utils.send_email(**kwargs),
+                            "output": fn(**kwargs),
                         }
                     )
 
