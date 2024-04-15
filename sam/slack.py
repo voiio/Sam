@@ -233,7 +233,7 @@ def process_run(event: {str, Any}, say: Say, voice_prompt: bool = False):
                     say.client.files_upload(
                         content=response.read(),
                         channels=say.channel,
-                        thread_ts=ts,
+                        thread_ts=event.get("thread_ts", None),
                         ts=msg["ts"],
                     )
                     logger.info(
