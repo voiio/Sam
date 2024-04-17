@@ -96,7 +96,6 @@ ACKNOWLEDGMENT_SMILEYS = [
     "robot_face",
     "saluting_face",
     "v",
-    "yawning_face",
     "100",
     "muscle",
     "thought_balloon",

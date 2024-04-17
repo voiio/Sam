@@ -74,7 +74,7 @@ async def run(
 ) -> str:
     """Run the assistant on the OpenAI thread."""
     logger.info(
-        "Running assistant %s in thread %s with additional instructions: %s",
+        "Running assistant %s in thread %s with additional instructions: %r",
         assistant_id,  # noqa
         thread_id,
         additional_instructions,
