@@ -48,13 +48,19 @@ async def complete_run(run_id: str, thread_id: str, retry: int = 0):
                         await client.beta.threads.runs.cancel(
                             run_id=run_id, thread_id=thread_id
                         )
+                        return
+                    logger.info("Running tool %s", tool_call.function.name)
+                    logger.debug(
+                        "Tool %s arguments: %r", tool_call.function.name, kwargs
+                    )
                     tool_outputs.append(
                         {
                             "tool_call_id": tool_call.id,  # noqa
-                            "output": await fn(**kwargs),
+                            "output": fn(**kwargs),
                         }
                     )
-
+                logger.info("Submitting tool outputs for run %s", run_id)
+                logger.debug("Tool outputs: %r", tool_outputs)
                 await client.beta.threads.runs.submit_tool_outputs(
                     run.id,  # noqa
                     thread_id=thread_id,
@@ -82,6 +88,7 @@ async def run(
             utils.func_to_tool(tools.send_email),
             utils.func_to_tool(tools.web_search),
             utils.func_to_tool(tools.fetch_website),
+            utils.func_to_tool(tools.fetch_coworker_emails),
         ],
     )
     await complete_run(_run.id, thread_id)

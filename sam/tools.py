@@ -12,6 +12,7 @@ from email.mime.text import MIMEText
 import requests
 from bs4 import ParserRejectedMarkup
 from markdownify import markdownify as md
+from slack_sdk import WebClient, errors
 
 from sam import config
 from sam.contrib import brave
@@ -108,3 +109,38 @@ def fetch_website(url: str) -> str:
                 return md(response.text)
             except ParserRejectedMarkup:
                 return "failed to parse website"
+
+
+def fetch_coworker_emails() -> str:
+    """
+    Fetch profile data about your coworkers from Slack.
+
+    The profiles include:
+    - first & last name
+    - email address
+    - status
+    - pronouns
+    """
+    client = WebClient(token=config.SLACK_BOT_TOKEN)
+    try:
+        response = client.users_list()
+    except errors.SlackClientError:
+        logger.exception("Failed to fetch coworkers' profiles")
+        return "failed to fetch coworkers' profiles"
+    else:
+        profiles = {}
+        for member in response["members"]:
+            profile = member.get("profile", {})
+            if (
+                "real_name" in member
+                and "email" in profile
+                and not profile.get("deleted", False)
+            ):
+                profiles[member["real_name"]] = {
+                    "first_name": profile.get("first_name", None),
+                    "last_name": profile.get("last_name", None),
+                    "email": profile["email"],
+                    "status": profile.get("status_text", None),
+                    "pronouns": profile.get("pronouns", None),
+                }
+        return json.dumps(profiles)
