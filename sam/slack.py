@@ -110,13 +110,14 @@ async def process_run(event: {str, Any}, say: AsyncSay, voice_prompt: bool = Fal
     logger.debug(f"process_run={json.dumps(event)}")
     channel_id = event["channel"]
     user_id = event["user"]
-    profile = say.client.users_profile_get(user=user_id)
+    profile = await say.client.users_profile_get(user=user_id)
     name = profile["profile"]["display_name"]
     email = profile["profile"]["email"]
     pronouns = profile["profile"]["pronouns"]
     additional_instructions = (
-        f"You always address the user as <@{user_id}>.\n"
-        f"The user's name is {name} and their email is {email}.\n"
+        f"You MUST ALWAYS address the user as <@{user_id}>.\n"
+        f"You may refer to the user as {name}.\n"
+        f"The user's email is {email}.\n"
         f"The user's pronouns are {pronouns}.\n"
     )
     try:
