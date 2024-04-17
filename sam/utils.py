@@ -21,6 +21,8 @@ from markdownify import markdownify as md
 from . import config
 from .contrib import brave
 
+from slack_bolt import App
+
 logger = logging.getLogger(__name__)
 
 __all__ = ["get_thread_id", "storage", "func_to_tool", "send_email"]
@@ -179,3 +181,23 @@ def fetch_website(url: str) -> str:
                 return md(response.text)
             except ParserRejectedMarkup:
                 return "failed to parse website"
+
+
+def fetch_slack_user_emails() -> str:
+    """
+    Fetch the emails of the Slack users.
+
+    Args: None
+
+    Returns: A dictionary of user slack IDs and their emails set on slack.
+    """
+    app = App(token=config.SLACK_BOT_TOKEN)
+    try:
+        response = app.client.users_list()
+        return str({
+            user['id']: user.get('profile', {}).get('email')
+            for user in response['members']
+            if 'email' in user.get('profile', {})
+        })
+    except Exception as e:
+        return f"an error occurred: {e}"

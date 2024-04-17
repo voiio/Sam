@@ -126,6 +126,7 @@ def process_run(event: {str, Any}, say: Say, voice_prompt: bool = False):
                 utils.func_to_tool(utils.send_email),
                 utils.func_to_tool(utils.web_search),
                 utils.func_to_tool(utils.fetch_website),
+                utils.func_to_tool(utils.fetch_slack_user_emails),
             ],
         )
         say.client.reactions_add(
