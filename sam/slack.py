@@ -146,6 +146,7 @@ async def process_run(event: {str, Any}, say: AsyncSay, voice_prompt: bool = Fal
             channel=say.channel,
             text=message_content.value,
             mrkdwn=True,
+            thread_ts=event.get("thread_ts", None),
         )
 
         if voice_prompt:
