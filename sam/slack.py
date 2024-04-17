@@ -1,4 +1,3 @@
-import asyncio
 import json
 import logging
 import random  # nosec
@@ -84,10 +83,7 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
             or event.get("parent_user_id") == USER_HANDLE
             or random.random() < config.RANDOM_RUN_RATIO  # nosec
         ):
-            # we need to run the assistant in a separate thread, otherwise we will
-            # block the main thread:
-            # process_run(event, say, voice_prompt=voice_prompt)
-            asyncio.create_task(process_run(event, say, voice_prompt=voice_prompt))
+            await process_run(event, say, voice_prompt=voice_prompt)
 
 
 ACKNOWLEDGMENT_SMILEYS = [
