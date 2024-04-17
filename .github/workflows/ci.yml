@@ -26,3 +26,19 @@ jobs:
           cache-dependency-path: 'pyproject.toml'
       - run: python -m pip install -e .[lint]
       - run: ${{ matrix.lint-command }}
+
+  pytest:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+          cache: 'pip'
+          cache-dependency-path: 'pyproject.toml'
+      - run: python -m pip install -e .[test]
+      - run: python -m pytest --cov=sam
+      - uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: voiio/sam
