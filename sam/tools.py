@@ -12,7 +12,7 @@ from email.mime.text import MIMEText
 import requests
 from bs4 import ParserRejectedMarkup
 from markdownify import markdownify as md
-from slack_bolt import App
+from slack_sdk import WebClient, errors
 
 from sam import config
 from sam.contrib import brave
@@ -111,23 +111,36 @@ def fetch_website(url: str) -> str:
                 return "failed to parse website"
 
 
-def fetch_slack_user_emails() -> str:
+def fetch_coworker_emails() -> str:
     """
-    Fetch the emails of the Slack users.
+    Fetch profile data about your coworkers from Slack.
 
-    Args: None
-
-    Returns: A dictionary of user slack IDs and their emails set on slack.
+    The profiles include:
+    - first & last name
+    - email address
+    - status
+    - pronouns
     """
-    app = App(token=config.SLACK_BOT_TOKEN)
+    client = WebClient(token=config.SLACK_BOT_TOKEN)
     try:
-        response = app.client.users_list()
-        return json.dumps(
-            {
-                user["id"]: user.get("profile", {}).get("email")
-                for user in response["members"]
-                if "email" in user.get("profile", {})
-            }
-        )
-    except Exception as e:
-        return f"an error occurred: {e}"
+        response = client.users_list()
+    except errors.SlackClientError:
+        logger.exception("Failed to fetch coworkers' profiles")
+        return "failed to fetch coworkers' profiles"
+    else:
+        profiles = {}
+        for member in response["members"]:
+            profile = member.get("profile", {})
+            if (
+                "real_name" in member
+                and "email" in profile
+                and not profile.get("deleted", False)
+            ):
+                profiles[member["real_name"]] = {
+                    "first_name": profile.get("first_name", None),
+                    "last_name": profile.get("last_name", None),
+                    "email": profile["email"],
+                    "status": profile.get("status_text", None),
+                    "pronouns": profile.get("pronouns", None),
+                }
+        return json.dumps(profiles)
