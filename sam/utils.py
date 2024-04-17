@@ -19,7 +19,7 @@ from bs4 import ParserRejectedMarkup
 from markdownify import markdownify as md
 
 from . import config
-from .contrib import brave
+from .contrib import brave, algolia
 
 logger = logging.getLogger(__name__)
 
@@ -154,6 +154,24 @@ def web_search(query: str) -> str:
             return json.dumps(
                 {result["title"]: result["url"] for result in results["results"]}
             )
+
+
+def platform_search(query: str) -> str:
+    with algolia.get_client() as api:
+        api.params.update({
+            "filters": "is_published:true",
+            "attributesToRetrieve": ["title", "public_url"]
+        })
+        try:
+            results = api.search(query)["hits"]
+        except algolia.AlgoliaSearchAPIError:
+            logger.exception("Failed to search the platform for query: %s", query)
+            return "search failed"
+        else:
+            if not results:
+                logger.warning("No platform results found for query: %s", query)
+                return "no results found"
+            return json.dumps({hit["title"]: hit["public_url"] for hit in results})
 
 
 def fetch_website(url: str) -> str:

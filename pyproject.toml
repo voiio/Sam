@@ -17,6 +17,7 @@ dependencies = [
   "slack-bolt",
   "openai",
   "pyyaml",
+  "algoliasearch"
 ]
 
 [project.scripts]
