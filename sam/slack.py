@@ -34,14 +34,6 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
     channel_type = event["channel_type"]
     user_id = event["user"]
     text = event["text"]
-    profile = say.client.users_profile_get(user=user_id)
-    name = profile["profile"]["display_name"]
-    email = profile["profile"]["email"]
-    additional_instructions = f"Always say the user name {name} when replying"
-    additional_instructions += (
-        f"\nIf you are being asked about the email it is: {email}"
-    )
-    text += f"\n{additional_instructions}"
     text = text.replace(f"<@{USER_HANDLE}>", "Sam")
     thread_id = await utils.get_thread_id(channel_id)
     # We may only add messages to a thread while the assistant is not running
@@ -118,6 +110,15 @@ async def process_run(event: {str, Any}, say: AsyncSay, voice_prompt: bool = Fal
     logger.debug(f"process_run={json.dumps(event)}")
     channel_id = event["channel"]
     user_id = event["user"]
+    profile = say.client.users_profile_get(user=user_id)
+    name = profile["profile"]["display_name"]
+    email = profile["profile"]["email"]
+    pronouns = profile["profile"]["pronouns"]
+    additional_instructions = (
+        f"You always address the user as <@{user_id}>.\n"
+        f"The user's name is {name} and their email is {email}.\n"
+        f"The user's pronouns are {pronouns}.\n"
+    )
     try:
         ts = event["ts"]
     except KeyError:
@@ -137,6 +138,7 @@ async def process_run(event: {str, Any}, say: AsyncSay, voice_prompt: bool = Fal
         message_content = await bot.run(
             thread_id=thread_id,
             assistant_id=config.OPENAI_ASSISTANT_ID,
+            additional_instructions=additional_instructions,
         )
 
         msg = await say(
