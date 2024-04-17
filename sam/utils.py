@@ -157,6 +157,13 @@ def web_search(query: str) -> str:
 
 
 def platform_search(query: str) -> str:
+    """Search the platform for information that matches the given query.
+
+    Enrich the search request with filters that are specific to the platform event index.
+
+    Args:
+        query: The query to search for.
+    """
     with algolia.get_client() as api:
         api.params.update(
             {
