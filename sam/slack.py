@@ -6,14 +6,14 @@ import time
 import urllib.request
 from typing import Any
 
-from openai import OpenAI
 from slack_bolt import App, Say
 
 from . import config, utils
+from .contrib import openai
 
 logger = logging.getLogger("sam")
 
-client = OpenAI()
+client = openai.get_client()
 app = App(token=config.SLACK_BOT_TOKEN)
 
 USER_HANDLE = None
