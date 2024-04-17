@@ -10,6 +10,7 @@ dynamic = ["version", "description"]
 
 requires-python = ">=3.11"
 dependencies = [
+  "aiohttp",
   "click",
   "markdownify",
   "redis",
