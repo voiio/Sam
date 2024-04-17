@@ -33,6 +33,14 @@ def handle_message(event: {str, Any}, say: Say):
     channel_type = event["channel_type"]
     user_id = event["user"]
     text = event["text"]
+    profile = say.client.users_profile_get(user=user_id)
+    name = profile["profile"]["display_name"]
+    email = profile["profile"]["email"]
+    additional_instructions = f"Always say the user name {name} when replying"
+    additional_instructions += (
+        f"\nIf you are being asked about the email it is: {email}"
+    )
+    text += f"\n{additional_instructions}"
     text = text.replace(f"<@{USER_HANDLE}>", "Sam")
     thread_id = utils.get_thread_id(channel_id)
     # We may only add messages to a thread while the assistant is not running
