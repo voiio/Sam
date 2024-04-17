@@ -1,10 +1,9 @@
 """AlgoliaSearch Search API client to perform web searches."""
 
 import abc
-import json
-import requests
 import os
 
+import requests
 from algoliasearch.search_client import SearchClient
 
 __all__ = ["get_client", "AlgoliaSearchAPIError"]
@@ -46,6 +45,7 @@ class AlgoliaSearch(AbstractAlgoliaSearch):  # pragma: no cover
         except requests.HTTPError as e:
             raise AlgoliaSearchAPIError("The Algolia search API call failed.") from e
 
+
 class AlgoliaSearchStub(AbstractAlgoliaSearch):
     def __init__(self):
         self.headers = {}
@@ -53,6 +53,7 @@ class AlgoliaSearchStub(AbstractAlgoliaSearch):
 
     def search(self, query):
         return {"hits": self._objects, "nbPages": 1}
+
 
 def get_client(index=None) -> AbstractAlgoliaSearch:
     index = index or os.getenv("ALGOLIA_SEARCH_INDEX")
@@ -63,7 +64,7 @@ def get_client(index=None) -> AbstractAlgoliaSearch:
         return AlgoliaSearch(
             application_id=os.getenv("ALGOLIA_APPLICATION_ID"),
             api_key=api_key,
-            index=index
+            index=index,
         )
     else:
         return AlgoliaSearchStub()
