@@ -26,6 +26,7 @@ sam = "sam.__main__:cli"
 test = [
   "pytest",
   "pytest-cov",
+  "pytest-asyncio",
 ]
 lint = [
   "bandit==1.7.8",
