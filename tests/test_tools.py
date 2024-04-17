@@ -46,3 +46,10 @@ def test_web_search__with_coordinates():
         tools.web_search("ferien")
         == '{"Ferien Deutschland": "https://www.schulferien.org/deutschland/ferien/"}'
     )
+
+
+def test_create_github_issue():
+    assert (
+        tools.create_github_issue("title", "body")
+        == "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+    )

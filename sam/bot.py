@@ -82,6 +82,7 @@ async def run(
             utils.func_to_tool(tools.send_email),
             utils.func_to_tool(tools.web_search),
             utils.func_to_tool(tools.fetch_website),
+            utils.func_to_tool(tools.create_github_issue),
         ],
     )
     await complete_run(_run.id, thread_id)

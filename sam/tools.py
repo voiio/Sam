@@ -14,7 +14,7 @@ from bs4 import ParserRejectedMarkup
 from markdownify import markdownify as md
 
 from sam import config
-from sam.contrib import brave
+from sam.contrib import brave, github
 from sam.utils import logger
 
 
@@ -108,3 +108,21 @@ def fetch_website(url: str) -> str:
                 return md(response.text)
             except ParserRejectedMarkup:
                 return "failed to parse website"
+
+
+def create_github_issue(title: str, body: str) -> str:
+    """
+    Create an issue on GitHub with the given title and body.
+
+    Args:
+        title: The title of the issue.
+        body: The body of the issue, markdown supported.
+    """
+    with github.get_client() as api:
+        try:
+            response = api.create_issue(title, body)
+        except github.GitHubAPIError:
+            logger.exception("Failed to create issue on GitHub")
+            return "failed to create issue"
+        else:
+            return response["url"]

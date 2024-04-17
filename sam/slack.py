@@ -37,12 +37,10 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
     text = text.replace(f"<@{USER_HANDLE}>", "Sam")
     thread_id = await utils.get_thread_id(channel_id)
     # We may only add messages to a thread while the assistant is not running
-    logger.debug('Locking thread_id="%s"', thread_id)
     async with (
         redis.from_url(config.REDIS_URL) as redis_client,
         redis_client.lock(thread_id, timeout=10 * 60, thread_local=False),
     ):  # 10 minutes
-        logger.debug('Locked thread_id="%s"', thread_id)
         file_ids = []
         voice_prompt = False
         if "files" in event:
