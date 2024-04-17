@@ -122,10 +122,12 @@ def fetch_slack_user_emails() -> str:
     app = App(token=config.SLACK_BOT_TOKEN)
     try:
         response = app.client.users_list()
-        return str({
-            user['id']: user.get('profile', {}).get('email')
-            for user in response['members']
-            if 'email' in user.get('profile', {})
-        })
+        return json.dumps(
+            {
+                user["id"]: user.get("profile", {}).get("email")
+                for user in response["members"]
+                if "email" in user.get("profile", {})
+            }
+        )
     except Exception as e:
         return f"an error occurred: {e}"

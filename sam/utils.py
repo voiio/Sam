@@ -10,10 +10,9 @@ import random
 import openai
 import redis.asyncio as redis
 import yaml
+from slack_bolt import App
 
 from . import config
-
-from slack_bolt import App
 
 logger = logging.getLogger(__name__)
 
