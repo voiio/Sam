@@ -50,7 +50,11 @@ class AlgoliaSearchStub(AbstractAlgoliaSearch):
     def __init__(self):
         self.headers = {}
         self._objects = [
-            {"title": "Deutschland", "parent_object_title": "Ferienangebote", "public_url": "https://www.schulferien.org/deutschland/ferien/"},
+            {
+                "title": "Deutschland",
+                "parent_object_title": "Ferienangebote",
+                "public_url": "https://www.schulferien.org/deutschland/ferien/",
+            },
         ]
         self.params = {}
 

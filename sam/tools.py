@@ -1,5 +1,4 @@
 from __future__ import annotations
-from urllib.parse import urljoin
 
 import json
 import os
@@ -9,6 +8,7 @@ import ssl
 import urllib.parse
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from urllib.parse import urljoin
 
 import requests
 from bs4 import ParserRejectedMarkup
@@ -175,6 +175,7 @@ def create_github_issue(title: str, body: str) -> str:
         else:
             return response["url"]
 
+
 def platform_search(query: str) -> str:
     """Search the platform for information that matches the given query.
 
@@ -199,4 +200,11 @@ def platform_search(query: str) -> str:
             if not results:
                 logger.warning("No platform results found for query: %s", query)
                 return "no results found"
-            return json.dumps({f"{hit['parent_object_title']}: {hit['title']}": urljoin("https://www.voiio.app", hit["public_url"]) for hit in results})
+            return json.dumps(
+                {
+                    f"{hit['parent_object_title']}: {hit['title']}": urljoin(
+                        "https://www.voiio.app", hit["public_url"]
+                    )
+                    for hit in results
+                }
+            )
