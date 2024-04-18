@@ -128,20 +128,25 @@ def fetch_coworker_emails() -> str:
         logger.exception("Failed to fetch coworkers' profiles")
         return "failed to fetch coworkers' profiles"
     else:
+        logger.debug("Fetched coworkers' profiles: %r", response["members"])
+
         profiles = {}
         for member in response["members"]:
             profile = member.get("profile", {})
-            if (
-                "real_name" in member
-                and "email" in profile
-                and not profile.get("deleted", False)
+            if not any(
+                [
+                    member["deleted"],
+                    member["is_bot"],
+                    member["is_app_user"],
+                    "real_name" not in profile,
+                ]
             ):
-                profiles[member["real_name"]] = {
-                    "first_name": profile.get("first_name", None),
-                    "last_name": profile.get("last_name", None),
-                    "email": profile["email"],
-                    "status": profile.get("status_text", None),
-                    "pronouns": profile.get("pronouns", None),
+                profiles[profile["real_name"]] = {
+                    "first_name": profile.get("first_name"),
+                    "last_name": profile.get("last_name"),
+                    "email": profile.get("email"),
+                    "status": profile.get("status_text"),
+                    "pronouns": profile.get("pronouns"),
                 }
         return json.dumps(profiles)
 
