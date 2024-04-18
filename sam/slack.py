@@ -60,12 +60,11 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
                         logger.info(f"User={user_id} added Audio={file['id']}")
                         voice_prompt = True
                     else:
-                        file_ids.append(
-                            client.files.create(
-                                file=(file["name"], response.read()),
-                                purpose="assistants",
-                            ).id
+                        new_file = await client.files.create(
+                            file=(file["name"], response.read()),
+                            purpose="assistants",
                         )
+                        file_ids.append(new_file.id)
                         logger.info(
                             f"User={user_id} added File={file_ids[-1]} to Thread={thread_id}"
                         )
