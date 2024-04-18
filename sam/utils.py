@@ -6,6 +6,7 @@ import enum
 import inspect
 import logging
 import random
+import typing
 
 import openai
 import redis.asyncio as redis
@@ -29,8 +30,6 @@ type_map = {
     float: "number",
     list: "array",
     dict: "object",
-    enum.StrEnum: "string",
-    enum.IntEnum: "integer",
 }
 
 
@@ -51,6 +50,8 @@ def func_to_tool(fn: callable) -> dict:
         doc_data = yaml.safe_load(args.split("Returns:")[0])
     else:
         description = fn.__doc__
+        doc_data = {}
+
     return {
         "type": "function",
         "function": {
@@ -60,13 +61,7 @@ def func_to_tool(fn: callable) -> dict:
             ),
             "parameters": {
                 "type": "object",
-                "properties": {
-                    param.name: {
-                        "type": type_map[param.annotation],
-                        "description": doc_data[param.name],
-                    }
-                    for param in params
-                },
+                "properties": dict(params_to_props(fn, params, doc_data)),
                 "required": [
                     param.name
                     for param in params
@@ -75,6 +70,25 @@ def func_to_tool(fn: callable) -> dict:
             },
         },
     }
+
+
+def params_to_props(fn, params, doc_data):
+    types = typing.get_type_hints(fn)
+    for param in params:
+        if param.name.startswith("_"):
+            continue
+        param_type = types[param.name]
+        if param_type in type_map:
+            yield param.name, {
+                "type": type_map[types[param.name]],
+                "description": doc_data[param.name],
+            }
+        elif issubclass(param_type, enum.StrEnum):
+            yield param.name, {
+                "type": "string",
+                "enum": [value.value for value in param_type],
+                "description": doc_data[param.name],
+            }
 
 
 async def backoff(retries: int, max_jitter: int = 10):

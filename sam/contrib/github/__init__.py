@@ -16,7 +16,7 @@ class GitHubAPIError(requests.HTTPError):
 
 class AbstractGitHubAPIWrapper(abc.ABC):  # pragma: no cover
     @abc.abstractmethod
-    def create_issue(self, title, body):
+    def create_issue(self, title, body, repo):
         return NotImplemented
 
     @abc.abstractmethod
@@ -42,9 +42,9 @@ class GitHubAPIWrapper(requests.Session, AbstractGitHubAPIWrapper):  # pragma: n
             }
         )
 
-    def create_issue(self, title, body):
+    def create_issue(self, title, body, repo):
         response = self.post(
-            f"{self.endpoint}/repos/{config.GITHUB_ORG}/{config.GITHUB_REPOSITORY}/issues",
+            f"{self.endpoint}/repos/{repo}/issues",
             json={"title": title, "body": body},
         )
         try:
@@ -64,7 +64,7 @@ class GitHubAPIWrapperStub(AbstractGitHubAPIWrapper):
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
-    def create_issue(self, title, body):
+    def create_issue(self, title, body, repo):
         return {
             "title": title,
             "body": body,

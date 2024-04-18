@@ -28,8 +28,9 @@ sam = "sam.__main__:cli"
 [project.optional-dependencies]
 test = [
   "pytest",
-  "pytest-cov",
   "pytest-asyncio",
+  "pytest-cov",
+  "pytest-env",
 ]
 lint = [
   "bandit==1.7.8",
@@ -57,6 +58,9 @@ fallback_version = "1.0.0"
 minversion = "6.0"
 addopts = "--cov --tb=short -rxs"
 testpaths = ["tests"]
+
+[tool.pytest_env]
+GITHUB_REPOS = 'voiio/sam'
 
 [tool.coverage.run]
 source = ["sam"]

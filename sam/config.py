@@ -1,3 +1,4 @@
+import enum
 import os
 from zoneinfo import ZoneInfo
 
@@ -14,3 +15,7 @@ BRAVE_SEARCH_LATITUDE = os.getenv("BRAVE_SEARCH_LATITUDE")
 SENTRY_DSN = os.getenv("SENTRY_DSN")
 GITHUB_ORG = os.getenv("GITHUB_ORG")
 GITHUB_REPOSITORY = os.getenv("GITHUB_REPOSITORY")
+GITHUB_REPOS = enum.StrEnum(
+    "GITHUB_REPOS",
+    {repo: repo for repo in os.getenv("GITHUB_REPOS", "").split(",") if repo},
+)

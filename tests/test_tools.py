@@ -53,9 +53,13 @@ def test_web_search__with_coordinates():
 
 def test_create_github_issue():
     assert (
-        tools.create_github_issue("title", "body")
+        tools.create_github_issue("title", "body", "voiio/sam")
         == "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
     )
+
+
+def test_create_github_issue__invalid_repo():
+    assert tools.create_github_issue("title", "body", "not-valid") == "invalid repo"
 
 
 def test_platform_search():
