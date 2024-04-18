@@ -40,11 +40,12 @@ def send_email(to: str, subject: str, body: str, **_context):
     msg = MIMEMultipart()
     msg["From"] = f"Sam <{from_email}>"
     msg["To"] = to
+    to_addr = to.split(",")
     if cc := _context.get("email"):
         msg["Cc"] = cc
+        to_addr.append(cc)
     msg["Subject"] = subject
     msg.attach(MIMEText(body, "plain"))
-    to_addr = to.split(",") + [cc] if cc else []
     try:
         with smtplib.SMTP(url.hostname, url.port) as server:
             server.ehlo()

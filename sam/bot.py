@@ -27,7 +27,7 @@ async def complete_run(run_id: str, thread_id: str, *, retry: int = 0, **context
     match run.status:
         case status if status in [RunStatus.QUEUED, RunStatus.IN_PROGRESS]:
             await utils.backoff(retry)
-            await complete_run(run_id, thread_id, retry=retry + 1)
+            await complete_run(run_id, thread_id, retry=retry + 1, **context)
         case RunStatus.REQUIRES_ACTION:
             if (
                 run.required_action
@@ -66,7 +66,13 @@ async def complete_run(run_id: str, thread_id: str, *, retry: int = 0, **context
                     thread_id=thread_id,
                     tool_outputs=tool_outputs,
                 )
-            await complete_run(run_id, thread_id)  # we reset the retry counter
+            await complete_run(
+                run_id, thread_id, **context
+            )  # we reset the retry counter
+        case RunStatus.COMPLETED:
+            return
+        case _:
+            raise IOError(f"Run {run.id} failed with status {run.status}")
 
 
 async def run(
@@ -77,11 +83,12 @@ async def run(
 ) -> str:
     """Run the assistant on the OpenAI thread."""
     logger.info(
-        "Running assistant %s in thread %s with additional instructions: %r",
+        "Running assistant %s in thread %s with additional instructions",
         assistant_id,  # noqa
         thread_id,
-        additional_instructions,
     )
+    logger.debug("Additional instructions: %r", additional_instructions)
+    logger.debug("Context: %r", context)
     client: openai.AsyncOpenAI = openai.AsyncOpenAI()
     _run = await client.beta.threads.runs.create(
         thread_id=thread_id,
@@ -96,7 +103,11 @@ async def run(
             utils.func_to_tool(tools.create_github_issue),
         ],
     )
-    await complete_run(_run.id, thread_id, **context)
+    try:
+        await complete_run(_run.id, thread_id, **context)
+    except IOError:
+        logger.exception("Run %s failed", _run.id)
+        return "🤯"
 
     messages = await client.beta.threads.messages.list(thread_id=thread_id)
     for message in messages.data:
