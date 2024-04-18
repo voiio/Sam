@@ -16,9 +16,10 @@ class RunStatus(enum.StrEnum):
 
     QUEUED = "queued"
     IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
     REQUIRES_ACTION = "requires_action"
     CANCELLING = "cancelling"
     CANCELLED = "cancelled"
     FAILED = "failed"
-    COMPLETED = "completed"
     EXPIRED = "expired"
+    INCOMPLETE = "incomplete"
