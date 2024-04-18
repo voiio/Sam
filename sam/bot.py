@@ -95,6 +95,7 @@ async def run(
             utils.func_to_tool(tools.fetch_website),
             utils.func_to_tool(tools.fetch_coworker_emails),
             utils.func_to_tool(tools.create_github_issue),
+            {"type": "file_search"},
         ],
         tool_choice={"type": "file_search"} if file_search else "auto",
     )

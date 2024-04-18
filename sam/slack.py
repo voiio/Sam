@@ -7,7 +7,6 @@ from typing import Any
 
 import redis.asyncio as redis
 from openai import AsyncOpenAI
-from openai.types.beta.threads.message_create_params import Attachment
 from slack_bolt.async_app import AsyncApp, AsyncSay
 
 from . import bot, config, utils
@@ -61,9 +60,11 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
                         voice_prompt = True
                     else:
                         file_ids.append(
-                            client.files.create(
-                                file=(file["name"], response.read()),
-                                purpose="assistants",
+                            (
+                                await client.files.create(
+                                    file=(file["name"], response.read()),
+                                    purpose="assistants",
+                                )
                             ).id
                         )
                         logger.info(
@@ -74,7 +75,7 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
             content=text,
             role="user",
             attachments=[
-                Attachment(file_id=file_id, add_to=["file_search"])
+                {"file_id": file_id, "tools": [{"type": "file_search"}]}
                 for file_id in file_ids
             ],
         )
