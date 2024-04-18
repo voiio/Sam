@@ -21,6 +21,7 @@ oauth_config:
       - chat:write
       - commands
       - users:read
+      - users:read.email
       - users.profile:read
       - files:read
       - files:write
