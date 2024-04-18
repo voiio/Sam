@@ -70,7 +70,10 @@ async def complete_run(run_id: str, thread_id: str, retry: int = 0):
 
 
 async def run(
-    assistant_id: str, thread_id: str, additional_instructions: str = None
+    assistant_id: str,
+    thread_id: str,
+    additional_instructions: str = None,
+    file_search: bool = False,
 ) -> str:
     """Run the assistant on the OpenAI thread."""
     logger.info(
@@ -92,6 +95,7 @@ async def run(
             utils.func_to_tool(tools.fetch_coworker_emails),
             utils.func_to_tool(tools.create_github_issue),
         ],
+        tool_choice={"type": "file_search"} if file_search else "auto",
     )
     await complete_run(_run.id, thread_id)
 

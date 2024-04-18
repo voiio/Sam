@@ -85,7 +85,11 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
             # we need to run the assistant in a separate thread, otherwise we will
             # block the main thread:
             # process_run(event, say, voice_prompt=voice_prompt)
-            asyncio.create_task(process_run(event, say, voice_prompt=voice_prompt))
+            asyncio.create_task(
+                process_run(
+                    event, say, voice_prompt=voice_prompt, file_search=bool(file_ids)
+                )
+            )
 
 
 ACKNOWLEDGMENT_SMILEYS = [
@@ -105,7 +109,12 @@ ACKNOWLEDGMENT_SMILEYS = [
 ]
 
 
-async def process_run(event: {str, Any}, say: AsyncSay, voice_prompt: bool = False):
+async def process_run(
+    event: {str, Any},
+    say: AsyncSay,
+    voice_prompt: bool = False,
+    file_search: bool = False,
+):
     logger.debug(f"process_run={json.dumps(event)}")
     channel_id = event["channel"]
     user_id = event["user"]
@@ -140,6 +149,7 @@ async def process_run(event: {str, Any}, say: AsyncSay, voice_prompt: bool = Fal
             thread_id=thread_id,
             assistant_id=config.OPENAI_ASSISTANT_ID,
             additional_instructions=additional_instructions,
+            file_search=file_search,
         )
 
         msg = await say(
