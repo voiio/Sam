@@ -112,13 +112,14 @@ async def process_run(event: {str, Any}, say: AsyncSay, voice_prompt: bool = Fal
     profile = await say.client.users_profile_get(user=user_id)
     name = profile["profile"]["display_name"]
     email = profile["profile"]["email"]
-    pronouns = profile["profile"]["pronouns"]
+    pronouns = profile["profile"].get("pronouns")
     additional_instructions = (
         f"You MUST ALWAYS address the user as <@{user_id}>.\n"
         f"You may refer to the user as {name}.\n"
         f"The user's email is {email}.\n"
-        f"The user's pronouns are {pronouns}.\n"
     )
+    if pronouns:
+        additional_instructions += f"The user's pronouns are {pronouns}.\n"
     try:
         ts = event["ts"]
     except KeyError:
