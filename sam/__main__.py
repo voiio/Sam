@@ -3,8 +3,11 @@ import logging
 import sys
 
 import click
+import sentry_sdk
 
 from . import config
+
+sentry_sdk.init(config.SENTRY_DSN)
 
 
 @click.group()

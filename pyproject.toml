@@ -18,6 +18,7 @@ dependencies = [
   "slack-bolt",
   "openai==1.20.0",
   "pyyaml",
+  "sentry-sdk",
 ]
 
 [project.scripts]
