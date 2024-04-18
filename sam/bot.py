@@ -9,7 +9,7 @@ from .typing import Roles, RunStatus
 logger = logging.getLogger(__name__)
 
 
-async def complete_run(run_id: str, thread_id: str, retry: int = 0):
+async def complete_run(run_id: str, thread_id: str, *, retry: int = 0, **context):
     """
     Wait for the run to complete.
 
@@ -56,7 +56,7 @@ async def complete_run(run_id: str, thread_id: str, retry: int = 0):
                     tool_outputs.append(
                         {
                             "tool_call_id": tool_call.id,  # noqa
-                            "output": fn(**kwargs),
+                            "output": fn(**kwargs, **context),
                         }
                     )
                 logger.info("Submitting tool outputs for run %s", run_id)
@@ -74,6 +74,7 @@ async def run(
     thread_id: str,
     additional_instructions: str = None,
     file_search: bool = False,
+    **context,
 ) -> str:
     """Run the assistant on the OpenAI thread."""
     logger.info(
@@ -97,7 +98,7 @@ async def run(
         ],
         tool_choice={"type": "file_search"} if file_search else "auto",
     )
-    await complete_run(_run.id, thread_id)
+    await complete_run(_run.id, thread_id, **context)
 
     messages = await client.beta.threads.messages.list(thread_id=thread_id)
     for message in messages.data:

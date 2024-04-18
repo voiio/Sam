@@ -19,12 +19,12 @@ from sam.contrib import brave, github
 from sam.utils import logger
 
 
-def send_email(to: str, subject: str, body: str):
+def send_email(to: str, subject: str, body: str, **_context):
     """
-    Write and send email.
+    Send an email the given recipients. The user is always cc'd on the email.
 
     Args:
-        to: The recipient of the email, e.g. john.doe@voiio.de.
+        to: Comma separated list of email addresses.
         subject: The subject of the email.
         body: The body of the email.
     """
@@ -39,6 +39,8 @@ def send_email(to: str, subject: str, body: str):
     msg = MIMEMultipart()
     msg["From"] = f"Sam <{from_email}>"
     msg["To"] = to
+    if cc := _context.get("email"):
+        msg["Cc"] = cc
     msg["Subject"] = subject
     msg.attach(MIMEText(body, "plain"))
     try:
@@ -55,7 +57,7 @@ def send_email(to: str, subject: str, body: str):
     return "Email sent successfully!"
 
 
-def web_search(query: str) -> str:
+def web_search(query: str, **_context) -> str:
     """
     Search the internet for information that matches the given query.
 
@@ -86,7 +88,7 @@ def web_search(query: str) -> str:
             )
 
 
-def fetch_website(url: str) -> str:
+def fetch_website(url: str, **_context) -> str:
     """
     Fetch the website for the given URL and return the content as Markdown.
 
@@ -111,7 +113,7 @@ def fetch_website(url: str) -> str:
                 return "failed to parse website"
 
 
-def fetch_coworker_emails() -> str:
+def fetch_coworker_emails(**_context) -> str:
     """
     Fetch profile data about your coworkers from Slack.
 
