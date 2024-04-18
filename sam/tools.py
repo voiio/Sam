@@ -1,4 +1,5 @@
 from __future__ import annotations
+from urllib.parse import urljoin
 
 import json
 import os
@@ -15,7 +16,7 @@ from markdownify import markdownify as md
 from slack_sdk import WebClient, errors
 
 from sam import config
-from sam.contrib import brave, github
+from sam.contrib import algolia, brave, github
 from sam.utils import logger
 
 
@@ -186,7 +187,7 @@ def platform_search(query: str) -> str:
         api.params.update(
             {
                 "filters": "is_published:true",
-                "attributesToRetrieve": ["title", "public_url"],
+                "attributesToRetrieve": ["title", "parent_object_title", "public_url"],
             }
         )
         try:
@@ -198,4 +199,4 @@ def platform_search(query: str) -> str:
             if not results:
                 logger.warning("No platform results found for query: %s", query)
                 return "no results found"
-            return json.dumps({hit["title"]: hit["public_url"] for hit in results})
+            return json.dumps({f"{hit['parent_object_title']}: {hit['title']}": urljoin("https://www.voiio.app", hit["public_url"]) for hit in results})

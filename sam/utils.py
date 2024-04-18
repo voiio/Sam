@@ -12,7 +12,6 @@ import redis.asyncio as redis
 import yaml
 
 from . import config
-from .contrib import algolia, brave
 
 logger = logging.getLogger(__name__)
 

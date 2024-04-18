@@ -18,7 +18,7 @@ dependencies = [
   "slack-bolt",
   "openai==1.20.0",
   "pyyaml",
-  "algoliasearch"
+  "algoliasearch",
   "sentry-sdk",
 ]
 

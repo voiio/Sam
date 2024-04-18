@@ -37,7 +37,7 @@ class AlgoliaSearch(AbstractAlgoliaSearch):  # pragma: no cover
         try:
             return self.index.search(
                 query,
-                params={
+                request_options={
                     **self.params,
                     "length": 5,
                 },
@@ -49,18 +49,18 @@ class AlgoliaSearch(AbstractAlgoliaSearch):  # pragma: no cover
 class AlgoliaSearchStub(AbstractAlgoliaSearch):
     def __init__(self):
         self.headers = {}
-        self._objects = []
+        self._objects = [
+            {"title": "Deutschland", "parent_object_title": "Ferienangebote", "public_url": "https://www.schulferien.org/deutschland/ferien/"},
+        ]
+        self.params = {}
 
     def search(self, query):
         return {"hits": self._objects, "nbPages": 1}
 
 
 def get_client(index=None) -> AbstractAlgoliaSearch:
-    index = index or os.getenv("ALGOLIA_SEARCH_INDEX")
-    if not index:
-        raise ValueError("Algolia client needs an index to refer to.")
-
-    if api_key := os.getenv("ALGOLIA_API_KEY", None):  # pragma: no cover
+    index = index or os.getenv("ALGOLIA_SEARCH_INDEX", "event")
+    if api_key := os.getenv("ALGOLIA_SEARCH_API_KEY", None):  # pragma: no cover
         return AlgoliaSearch(
             application_id=os.getenv("ALGOLIA_APPLICATION_ID"),
             api_key=api_key,

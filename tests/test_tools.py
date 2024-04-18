@@ -1,5 +1,8 @@
 import smtplib
+import requests
+import json
 from unittest import mock
+from sam.contrib import algolia
 
 import pytest
 
@@ -53,3 +56,16 @@ def test_create_github_issue():
         tools.create_github_issue("title", "body")
         == "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
     )
+
+def test_platform_search():
+    assert tools.platform_search("ferien") == json.dumps({"Ferienangebote: Deutschland": "https://www.schulferien.org/deutschland/ferien/"})
+
+
+def test_platform_search_with_error():
+    with mock.patch("sam.contrib.algolia.AlgoliaSearchStub.search", side_effect=algolia.AlgoliaSearchAPIError):
+        assert tools.platform_search("something") == "search failed"
+
+
+def test_platform_search_no_results():
+    with mock.patch("sam.contrib.algolia.AlgoliaSearchStub.search", return_value={"hits": []}):
+        assert tools.platform_search("something") == "no results found"
