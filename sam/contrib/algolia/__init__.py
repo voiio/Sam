@@ -1,4 +1,4 @@
-"""AlgoliaSearch Search API client to perform web searches."""
+"""AlgoliaSearch Search API client to perform searches on Algolia."""
 
 import abc
 import os
