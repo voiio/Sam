@@ -3,6 +3,7 @@ import json
 import logging
 import random  # nosec
 import urllib.request
+from datetime import datetime
 from typing import Any
 
 import redis.asyncio as redis
@@ -112,10 +113,12 @@ async def process_run(event: {str, Any}, say: AsyncSay, voice_prompt: bool = Fal
     name = profile["display_name"]
     email = profile["email"]
     pronouns = profile.get("pronouns")
+    local_time = datetime.now().astimezone(config.TIMEZONE).strftime("%H:%M")
     additional_instructions = (
         f"You MUST ALWAYS address the user as <@{user_id}>.\n"
         f"You may refer to the user as {name}.\n"
         f"The user's email is {email}.\n"
+        f"The time is {local_time}.\n"
     )
     if pronouns:
         additional_instructions += f"The user's pronouns are {pronouns}.\n"
