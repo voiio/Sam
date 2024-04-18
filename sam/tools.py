@@ -179,7 +179,7 @@ def create_github_issue(title: str, body: str) -> str:
 def platform_search(query: str) -> str:
     """Search the platform for information that matches the given query.
 
-    Enrich the search request with filters that are specific to the platform event index.
+    Return the title and URL of the matching objects in a user friendly format.
 
     Args:
         query: The query to search for.
