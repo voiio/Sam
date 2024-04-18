@@ -176,7 +176,7 @@ def create_github_issue(title: str, body: str) -> str:
             logger.exception("Failed to create issue on GitHub")
             return "failed to create issue"
         else:
-            return response["url"]
+            return response["html_url"]
 
 
 def platform_search(query: str) -> str:
