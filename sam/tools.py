@@ -8,6 +8,7 @@ import ssl
 import urllib.parse
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from urllib.parse import urljoin
 
 import requests
 from bs4 import ParserRejectedMarkup
@@ -15,7 +16,7 @@ from markdownify import markdownify as md
 from slack_sdk import WebClient, errors
 
 from sam import config
-from sam.contrib import brave, github
+from sam.contrib import algolia, brave, github
 from sam.utils import logger
 
 
@@ -173,3 +174,37 @@ def create_github_issue(title: str, body: str) -> str:
             return "failed to create issue"
         else:
             return response["url"]
+
+
+def platform_search(query: str) -> str:
+    """Search the platform for information that matches the given query.
+
+    Return the title and URL of the matching objects in a user friendly format.
+
+    Args:
+        query: The query to search for.
+    """
+    with algolia.get_client() as api:
+        api.params.update(
+            {
+                "filters": "is_published:true",
+                "attributesToRetrieve": ["title", "parent_object_title", "public_url"],
+            }
+        )
+        try:
+            results = api.search(query)["hits"]
+        except algolia.AlgoliaSearchAPIError:
+            logger.exception("Failed to search the platform for query: %s", query)
+            return "search failed"
+        else:
+            if not results:
+                logger.warning("No platform results found for query: %s", query)
+                return "no results found"
+            return json.dumps(
+                {
+                    f"{hit['parent_object_title']}: {hit['title']}": urljoin(
+                        "https://www.voiio.app", hit["public_url"]
+                    )
+                    for hit in results
+                }
+            )
