@@ -154,10 +154,10 @@ def fetch_coworker_emails() -> str:
 def create_github_issue(title: str, body: str) -> str:
     """
     Create an issue on GitHub with the given title and body.
-    
+
     A good issues usually includes a user story for a feature,
     or a step by step guide how to reproduce a bug.
-    
+
     You should provide ideas for a potential solution,
     including code snippet examples in a Markdown code block.
 
