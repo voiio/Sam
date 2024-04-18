@@ -5,6 +5,8 @@ import os
 
 import requests
 
+from sam import config
+
 __all__ = ["get_client", "GitHubAPIError"]
 
 
@@ -42,7 +44,7 @@ class GitHubAPIWrapper(requests.Session, AbstractGitHubAPIWrapper):  # pragma: n
 
     def create_issue(self, title, body):
         response = self.post(
-            f"{self.endpoint}/repos/{os.getenv('GITHUB_ORG')}/{os.getenv('GITHUB_REPOSITORY')}/issues",
+            f"{self.endpoint}/repos/{config.GITHUB_ORG}/{config.GITHUB_REPOSITORY}/issues",
             json={"title": title, "body": body},
         )
         try:
