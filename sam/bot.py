@@ -55,8 +55,8 @@ async def complete_run(run_id: str, thread_id: str, *, retry: int = 0, **context
                     )
                     tool_outputs.append(
                         {
-                            "tool_call_id": tool_call.id,  # noqa
-                            "output": fn(**kwargs, **context),
+                            "tool_call_id": tool_call.id,
+                            "output": fn(**kwargs, _context={**context}),
                         }
                     )
                 logger.info("Submitting tool outputs for run %s", run_id)

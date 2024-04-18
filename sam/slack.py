@@ -1,4 +1,5 @@
 import asyncio
+import enum
 import json
 import logging
 import random  # nosec

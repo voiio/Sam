@@ -15,12 +15,13 @@ from bs4 import ParserRejectedMarkup
 from markdownify import markdownify as md
 from slack_sdk import WebClient, errors
 
+import sam.config
 from sam import config
 from sam.contrib import algolia, brave, github
 from sam.utils import logger
 
 
-def send_email(to: str, subject: str, body: str, **_context):
+def send_email(to: str, subject: str, body: str, _context=None):
     """
     Send an email the given recipients. The user is always cc'd on the email.
 
@@ -29,6 +30,7 @@ def send_email(to: str, subject: str, body: str, **_context):
         subject: The subject of the email.
         body: The body of the email.
     """
+    _context = _context or {}
     email_url = os.getenv("EMAIL_URL")
     from_email = os.getenv("FROM_EMAIL", "sam@voiio.de")
     email_white_list = os.getenv("EMAIL_WHITE_LIST")
@@ -60,7 +62,7 @@ def send_email(to: str, subject: str, body: str, **_context):
     return "Email sent successfully!"
 
 
-def web_search(query: str, **_context) -> str:
+def web_search(query: str, _context=None) -> str:
     """
     Search the internet for information that matches the given query.
 
@@ -91,7 +93,7 @@ def web_search(query: str, **_context) -> str:
             )
 
 
-def fetch_website(url: str, **_context) -> str:
+def fetch_website(url: str, _context=None) -> str:
     """
     Fetch the website for the given URL and return the content as Markdown.
 
@@ -116,7 +118,7 @@ def fetch_website(url: str, **_context) -> str:
                 return "failed to parse website"
 
 
-def fetch_coworker_emails(**_context) -> str:
+def fetch_coworker_emails(_context=None) -> str:
     """
     Fetch profile data about your coworkers from Slack.
 
@@ -156,7 +158,9 @@ def fetch_coworker_emails(**_context) -> str:
         return json.dumps(profiles)
 
 
-def create_github_issue(title: str, body: str) -> str:
+def create_github_issue(
+    title: str, body: str, repo: "sam.config.GITHUB_REPOS", _context=None
+) -> str:
     """
     Create an issue on GitHub with the given title and body.
 
@@ -166,13 +170,19 @@ def create_github_issue(title: str, body: str) -> str:
     You should provide ideas for a potential solution,
     including code snippet examples in a Markdown code block.
 
+    You MUST ALWAYS write the issue in English.
+
     Args:
         title: The title of the issue.
         body: The body of the issue, markdown supported.
+        repo: The repository to create the issue in.
     """
+    if repo not in config.GITHUB_REPOS.__members__:
+        logger.warning("Invalid repo: %s", repo)
+        return "invalid repo"
     with github.get_client() as api:
         try:
-            response = api.create_issue(title, body)
+            response = api.create_issue(title, body, repo)
         except github.GitHubAPIError:
             logger.exception("Failed to create issue on GitHub")
             return "failed to create issue"
