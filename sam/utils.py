@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import datetime
 import enum
 import inspect
 import logging
@@ -40,12 +41,7 @@ def func_to_tool(fn: callable) -> dict:
     The docstring should be formatted using the Google Napolean style.
     """
     signature: inspect.Signature = inspect.signature(fn)
-    params = [
-        param
-        for param in signature.parameters.values()
-        if not param.name.startswith("_")
-    ]
-    if params:
+    if signature.parameters:
         description, args = fn.__doc__.split("Args:")
         doc_data = yaml.safe_load(args.split("Returns:")[0])
     else:
@@ -64,11 +60,11 @@ def func_to_tool(fn: callable) -> dict:
                         "type": type_map[param.annotation],
                         "description": doc_data[param.name],
                     }
-                    for param in params
+                    for param in signature.parameters.values()
                 },
                 "required": [
                     param.name
-                    for param in params
+                    for param in signature.parameters.values()
                     if param.default is inspect.Parameter.empty
                 ],
             },
@@ -99,6 +95,10 @@ async def get_thread_id(slack_id) -> str:
             thread = await openai.AsyncOpenAI().beta.threads.create()
             thread_id = thread.id
 
-        await redis_client.set(slack_id, thread_id)
+        midnight = datetime.datetime.combine(
+            datetime.date.today(), datetime.time.max, tzinfo=config.TIMEZONE
+        )
+
+        await redis_client.set(slack_id, thread_id, exat=int(midnight.timestamp()))
 
     return thread_id

@@ -3,13 +3,13 @@ import logging
 
 import openai
 
-from . import config, tools, utils
+from . import tools, utils
 from .typing import Roles, RunStatus
 
 logger = logging.getLogger(__name__)
 
 
-async def complete_run(run_id: str, thread_id: str, *, retry: int = 0, **context):
+async def complete_run(run_id: str, thread_id: str, retry: int = 0):
     """
     Wait for the run to complete.
 
@@ -56,7 +56,7 @@ async def complete_run(run_id: str, thread_id: str, *, retry: int = 0, **context
                     tool_outputs.append(
                         {
                             "tool_call_id": tool_call.id,  # noqa
-                            "output": fn(**kwargs, **context),
+                            "output": fn(**kwargs),
                         }
                     )
                 logger.info("Submitting tool outputs for run %s", run_id)
@@ -70,10 +70,7 @@ async def complete_run(run_id: str, thread_id: str, *, retry: int = 0, **context
 
 
 async def run(
-    assistant_id: str,
-    thread_id: str,
-    additional_instructions: str = None,
-    **context,
+    assistant_id: str, thread_id: str, additional_instructions: str = None
 ) -> str:
     """Run the assistant on the OpenAI thread."""
     logger.info(
@@ -87,7 +84,6 @@ async def run(
         thread_id=thread_id,
         assistant_id=assistant_id,
         additional_instructions=additional_instructions,
-        max_prompt_tokens=config.MAX_PROMPT_TOKENS,
         tools=[
             utils.func_to_tool(tools.send_email),
             utils.func_to_tool(tools.web_search),
@@ -96,7 +92,7 @@ async def run(
             utils.func_to_tool(tools.create_github_issue),
         ],
     )
-    await complete_run(_run.id, thread_id, **context)
+    await complete_run(_run.id, thread_id)
 
     messages = await client.beta.threads.messages.list(thread_id=thread_id)
     for message in messages.data:

@@ -72,6 +72,7 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
             thread_id=thread_id,
             content=text,
             role="user",
+            file_ids=file_ids,
         )
         logger.info(
             f"User={user_id} added Message={client_msg_id} added to Thread={thread_id}"
@@ -108,10 +109,10 @@ async def process_run(event: {str, Any}, say: AsyncSay, voice_prompt: bool = Fal
     logger.debug(f"process_run={json.dumps(event)}")
     channel_id = event["channel"]
     user_id = event["user"]
-    user = await say.client.users_profile_get(user=user_id)
-    name = user["profile"]["display_name"]
-    email = user["profile"]["email"]
-    pronouns = user["profile"].get("pronouns")
+    profile = await say.client.users_profile_get(user=user_id)
+    name = profile["profile"]["display_name"]
+    email = profile["profile"]["email"]
+    pronouns = profile["profile"].get("pronouns")
     additional_instructions = (
         f"You MUST ALWAYS address the user as <@{user_id}>.\n"
         f"You may refer to the user as {name}.\n"
@@ -139,7 +140,6 @@ async def process_run(event: {str, Any}, say: AsyncSay, voice_prompt: bool = Fal
             thread_id=thread_id,
             assistant_id=config.OPENAI_ASSISTANT_ID,
             additional_instructions=additional_instructions,
-            **user["profile"],
         )
 
         msg = await say(
