@@ -10,14 +10,16 @@ dynamic = ["version", "description"]
 
 requires-python = ">=3.11"
 dependencies = [
+  "aiohttp",
   "click",
   "markdownify",
   "redis",
   "requests",
   "slack-bolt",
-  "openai",
+  "openai==1.20.0",
   "pyyaml",
   "algoliasearch"
+  "sentry-sdk",
 ]
 
 [project.scripts]
@@ -27,6 +29,7 @@ sam = "sam.__main__:cli"
 test = [
   "pytest",
   "pytest-cov",
+  "pytest-asyncio",
 ]
 lint = [
   "bandit==1.7.8",

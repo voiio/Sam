@@ -1,10 +1,13 @@
+import asyncio
 import logging
 import sys
 
 import click
-from slack_bolt.adapter.socket_mode import SocketModeHandler
+import sentry_sdk
 
 from . import config
+
+sentry_sdk.init(config.SENTRY_DSN)
 
 
 @click.group()
@@ -26,9 +29,15 @@ def run():
 @run.command()
 def slack():
     """Run the Slack bot demon."""
+    from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
+
     from .slack import app
 
-    SocketModeHandler(app, config.SLACK_APP_TOKEN).start()
+    loop = asyncio.get_event_loop()
+
+    loop.run_until_complete(
+        AsyncSocketModeHandler(app, config.SLACK_APP_TOKEN).start_async()
+    )
 
 
 if __name__ == "__main__":
