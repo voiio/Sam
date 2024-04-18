@@ -41,7 +41,6 @@ def func_to_tool(fn: callable) -> dict:
     The docstring should be formatted using the Google Napolean style.
     """
     signature: inspect.Signature = inspect.signature(fn)
-    print(signature)
     params = [
         param
         for param in signature.parameters.values()
