@@ -7,6 +7,7 @@ from typing import Any
 
 import redis.asyncio as redis
 from openai import AsyncOpenAI
+from openai.types.beta.threads.message_create_params import Attachment
 from slack_bolt.async_app import AsyncApp, AsyncSay
 
 from . import bot, config, utils
@@ -72,6 +73,10 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
             thread_id=thread_id,
             content=text,
             role="user",
+            attachments=[
+                Attachment(file_id=file_id, add_to=["file_search"])
+                for file_id in file_ids
+            ],
         )
         logger.info(
             f"User={user_id} added Message={client_msg_id} added to Thread={thread_id}"
