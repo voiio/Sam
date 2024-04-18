@@ -40,7 +40,12 @@ def func_to_tool(fn: callable) -> dict:
     The docstring should be formatted using the Google Napolean style.
     """
     signature: inspect.Signature = inspect.signature(fn)
-    if signature.parameters:
+    params = [
+        param
+        for param in signature.parameters.values()
+        if not param.name.startswith("_")
+    ]
+    if params:
         description, args = fn.__doc__.split("Args:")
         doc_data = yaml.safe_load(args.split("Returns:")[0])
     else:
@@ -59,11 +64,11 @@ def func_to_tool(fn: callable) -> dict:
                         "type": type_map[param.annotation],
                         "description": doc_data[param.name],
                     }
-                    for param in signature.parameters.values()
+                    for param in params
                 },
                 "required": [
                     param.name
-                    for param in signature.parameters.values()
+                    for param in params
                     if param.default is inspect.Parameter.empty
                 ],
             },
