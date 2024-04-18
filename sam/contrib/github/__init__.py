@@ -68,7 +68,7 @@ class GitHubAPIWrapperStub(AbstractGitHubAPIWrapper):
         return {
             "title": title,
             "body": body,
-            "url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+            "html_url": "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
         }
 
 
