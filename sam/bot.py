@@ -3,7 +3,7 @@ import logging
 
 import openai
 
-from . import tools, utils
+from . import config, tools, utils
 from .typing import Roles, RunStatus
 
 logger = logging.getLogger(__name__)
@@ -84,6 +84,7 @@ async def run(
         thread_id=thread_id,
         assistant_id=assistant_id,
         additional_instructions=additional_instructions,
+        max_prompt_tokens=config.MAX_PROMPT_TOKENS,
         tools=[
             utils.func_to_tool(tools.send_email),
             utils.func_to_tool(tools.web_search),

@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import datetime
 import enum
 import inspect
 import logging
@@ -95,10 +94,6 @@ async def get_thread_id(slack_id) -> str:
             thread = await openai.AsyncOpenAI().beta.threads.create()
             thread_id = thread.id
 
-        midnight = datetime.datetime.combine(
-            datetime.date.today(), datetime.time.max, tzinfo=config.TIMEZONE
-        )
-
-        await redis_client.set(slack_id, thread_id, exat=int(midnight.timestamp()))
+        await redis_client.set(slack_id, thread_id)
 
     return thread_id
