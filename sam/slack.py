@@ -72,7 +72,6 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
             thread_id=thread_id,
             content=text,
             role="user",
-            file_ids=file_ids,
         )
         logger.info(
             f"User={user_id} added Message={client_msg_id} added to Thread={thread_id}"
