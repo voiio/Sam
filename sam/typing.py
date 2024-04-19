@@ -23,3 +23,6 @@ class RunStatus(enum.StrEnum):
     FAILED = "failed"
     EXPIRED = "expired"
     INCOMPLETE = "incomplete"
+
+
+AUDIO_FORMATS = ["mp3", "mp4", "mpeg", "mpga", "m4a", "wav", "webm"]
