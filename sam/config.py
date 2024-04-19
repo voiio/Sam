@@ -1,5 +1,11 @@
+from __future__ import annotations
+
 import enum
 import os
+import tomllib
+from dataclasses import dataclass
+from functools import cached_property
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 SLACK_BOT_TOKEN = os.getenv("SLACK_BOT_TOKEN")
@@ -17,3 +23,25 @@ GITHUB_REPOS = enum.StrEnum(
     "GITHUB_REPOS",
     {repo: repo for repo in os.getenv("GITHUB_REPOS", "").split(",") if repo},
 )
+
+
+@dataclass
+class AssistantConfig:
+    name: str
+    assistant_id: str
+    instructions: list[str]
+    project: str
+
+    @cached_property
+    def system_prompt(self):
+        return "\n\n".join(
+            Path(instruction).read_text() for instruction in self.instructions
+        )
+
+
+def load_assistants():
+    with Path("pyproject.toml").open("rb") as fs:
+        for assistant in (
+            tomllib.load(fs).get("tool", {}).get("sam", {}).get("assistants", [])
+        ):
+            yield AssistantConfig(**assistant)
