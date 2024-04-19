@@ -41,9 +41,6 @@ class AssistantConfig:
         )
 
 
-project = Path("pyproject.toml").resolve()
-
-
 def load_assistants():
     with Path("pyproject.toml").open("rb") as fs:
         for assistant in (
