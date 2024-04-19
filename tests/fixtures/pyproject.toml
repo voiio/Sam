@@ -1,0 +1,8 @@
+[[tool.sam.assistants]]
+name = "Harry"
+assistant_id = "asst_1234057341258907"
+project="default-project"
+instructions = [
+  "harry.md",
+  "security.md",
+]
