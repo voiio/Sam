@@ -22,7 +22,9 @@ def cli():
 def run(verbose):
     """Run an assistent bot."""
     handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
+    handler.setFormatter(
+        logging.Formatter("%(asctime)s %(levelname)7s %(name)s - %(message)s")
+    )
     logging.basicConfig(
         handlers=[handler], level=logging.DEBUG if verbose else logging.INFO
     )
@@ -33,12 +35,12 @@ def slack():
     """Run the Slack bot demon."""
     from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 
-    from .slack import app
+    from .slack import get_app
 
     loop = asyncio.get_event_loop()
 
     loop.run_until_complete(
-        AsyncSocketModeHandler(app, config.SLACK_APP_TOKEN).start_async()
+        AsyncSocketModeHandler(get_app(), config.SLACK_APP_TOKEN).start_async()
     )
 
 

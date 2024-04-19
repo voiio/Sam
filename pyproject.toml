@@ -82,7 +82,7 @@ fallback_version = "1.0.0"
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "--cov --tb=short -rxs"
+addopts = "--tb=short -rxs"
 testpaths = ["tests"]
 
 [tool.pytest_env]
