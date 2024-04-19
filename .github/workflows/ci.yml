@@ -27,6 +27,21 @@ jobs:
       - run: python -m pip install -e .[lint]
       - run: ${{ matrix.lint-command }}
 
+
+  dist:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - run: python -m pip install --upgrade pip build wheel twine
+      - run: python -m build --sdist --wheel
+      - run: python -m twine check dist/*
+      - uses: actions/upload-artifact@v4
+        with:
+          path: dist/*
+
   pytest:
     runs-on: ubuntu-latest
     steps:
