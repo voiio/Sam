@@ -33,8 +33,13 @@ async def test_complete_run__requires_action(client, monkeypatch):
     tool_call.function.name = "web_search"
     required_action.submit_tool_outputs.tool_calls = [tool_call]
     client.beta.threads.runs.retrieve.return_value = namedtuple(
-        "Run", ["id", "status", "required_action"]
-    )(id="run-1", status="requires_action", required_action=required_action)
+        "Run", ["id", "thread_id", "status", "required_action"]
+    )(
+        id="run-1",
+        thread_id="thread-1",
+        status="requires_action",
+        required_action=required_action,
+    )
     with pytest.raises(RecursionError):
         await bot.complete_run(run_id="run-1", thread_id="thread-1")
     assert web_search.called
@@ -46,14 +51,33 @@ async def test_complete_run__queued(monkeypatch, client):
     client.beta.threads.runs.retrieve.return_value = namedtuple(
         "Run", ["id", "status"]
     )(id="run-1", status="queued")
-    with pytest.raises(Exception) as e:
+    with pytest.raises(RecursionError) as e:
         await bot.complete_run(run_id="run-1", thread_id="thread-1")
 
     assert "Max retries exceeded" in str(e.value)
 
 
 @pytest.mark.asyncio
-async def test_run(monkeypatch, client):
+async def test_complete_run__completed(monkeypatch, client):
+    monkeypatch.setattr("sam.utils.backoff", mock.AsyncMock())
+    client.beta.threads.runs.retrieve.return_value = namedtuple(
+        "Run", ["id", "status"]
+    )(id="run-1", status="completed")
+    await bot.complete_run(run_id="run-1", thread_id="thread-1")
+
+
+@pytest.mark.asyncio
+async def test_complete_run__unexpected_status(monkeypatch, client):
+    monkeypatch.setattr("sam.utils.backoff", mock.AsyncMock())
+    client.beta.threads.runs.retrieve.return_value = namedtuple(
+        "Run", ["id", "status"]
+    )(id="run-1", status="failed")
+    with pytest.raises(IOError):
+        await bot.complete_run(run_id="run-1", thread_id="thread-1")
+
+
+@pytest.mark.asyncio
+async def test_execute_run(monkeypatch, client):
     client.beta.threads.runs.retrieve.return_value = namedtuple(
         "Run", ["id", "status"]
     )(id="run-1", status="queued")
@@ -76,6 +100,74 @@ async def test_run(monkeypatch, client):
             ),
         ]
     )
-    bot.complete_run = mock.AsyncMock()
-    await bot.run(thread_id="thread-1", assistant_id="assistant-1")
-    assert bot.complete_run.called
+    complete_run = mock.AsyncMock()
+    monkeypatch.setattr(bot, "complete_run", complete_run)
+    await bot.execute_run(thread_id="thread-1", assistant_id="assistant-1")
+    assert complete_run.called
+
+
+@pytest.mark.asyncio
+async def test_execute_run__no_completed(monkeypatch, client):
+    client.beta.threads.runs.retrieve.return_value = namedtuple(
+        "Run", ["id", "status"]
+    )(id="run-1", status="queued")
+    client.beta.threads.messages.list.return_value = namedtuple("Response", ["data"])(
+        data=[
+            Message(
+                id="msg-1",
+                content=[
+                    TextContentBlock(
+                        type="text", text=Text(value="Hello", annotations=[])
+                    )
+                ],
+                status="completed",
+                role="assistant",
+                created_at=123,
+                files=[],
+                file_ids=[],
+                object="thread.message",
+                thread_id="thread-4",
+            ),
+        ]
+    )
+    complete_run = mock.AsyncMock(side_effect=[RecursionError, None])
+    monkeypatch.setattr(bot, "complete_run", complete_run)
+    response = await bot.execute_run(thread_id="thread-1", assistant_id="assistant-1")
+    assert complete_run.called
+    assert response == "🤯"
+
+
+@pytest.mark.asyncio
+async def test_execute_run__no_message(monkeypatch, client):
+    client.beta.threads.runs.retrieve.return_value = namedtuple(
+        "Run", ["id", "status"]
+    )(id="run-1", status="queued")
+    client.beta.threads.messages.list.return_value = namedtuple("Response", ["data"])(
+        data=[
+            Message(
+                id="msg-1",
+                content=[
+                    TextContentBlock(
+                        type="text", text=Text(value="Hello", annotations=[])
+                    )
+                ],
+                status="completed",
+                role="assistant",
+                created_at=123,
+                files=[],
+                file_ids=[],
+                object="thread.message",
+                thread_id="thread-4",
+            ),
+        ]
+    )
+    complete_run = mock.AsyncMock()
+    monkeypatch.setattr(bot, "complete_run", complete_run)
+    fetch_latest_assistant_message = mock.AsyncMock(side_effect=[ValueError, None])
+    monkeypatch.setattr(
+        bot, "fetch_latest_assistant_message", fetch_latest_assistant_message
+    )
+    response = await bot.execute_run(thread_id="thread-1", assistant_id="assistant-1")
+    assert complete_run.called
+    assert fetch_latest_assistant_message.called
+    assert response == "🤯"
