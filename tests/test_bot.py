@@ -1,8 +1,15 @@
+import io
 from collections import namedtuple
 from unittest import mock
 
 import pytest
-from openai.types.beta.threads import Message, Text, TextContentBlock
+from openai.types.beta.threads import (
+    ImageFile,
+    ImageFileContentBlock,
+    Message,
+    Text,
+    TextContentBlock,
+)
 
 from sam import bot
 
@@ -51,6 +58,49 @@ async def test_add_message__audio(client):
     assert client.beta.threads.messages.create.call_args == mock.call(
         thread_id="thread-1", content="Hello\nWorld", role="user", attachments=[]
     )
+
+
+@pytest.mark.asyncio
+async def test_call_tools__value_error(client):
+    run = mock.MagicMock()
+    run.required_action = None
+    with pytest.raises(ValueError):
+        await bot.call_tools(run)
+
+
+@pytest.mark.asyncio
+async def test_call_tools__io_error_fn_name(client):
+    run = mock.MagicMock()
+    tool_call = mock.MagicMock()
+    tool_call.function.name = "does_no_exist"
+    run.required_action.submit_tool_outputs.tool_calls = [tool_call]
+    with pytest.raises(IOError) as e:
+        await bot.call_tools(run)
+    assert "Tool does_no_exist not found" in str(e.value)
+
+
+@pytest.mark.asyncio
+async def test_call_tools__io_error_fn_kwargs(client):
+    run = mock.MagicMock()
+    tool_call = mock.MagicMock()
+    tool_call.function.name = "web_search"
+    tool_call.function.arguments = "{'notJSON'}"
+    run.required_action.submit_tool_outputs.tool_calls = [tool_call]
+    with pytest.raises(IOError) as e:
+        await bot.call_tools(run)
+    assert "Invalid arguments" in str(e.value)
+
+
+@pytest.mark.asyncio
+async def test_call_tools__exception(client):
+    run = mock.MagicMock()
+    tool_call = mock.MagicMock()
+    tool_call.function.name = "web_search"
+    tool_call.function.arguments = '{"wrong": "args"}'
+    run.required_action.submit_tool_outputs.tool_calls = [tool_call]
+    with pytest.raises(TypeError) as e:
+        await bot.call_tools(run)
+    assert "web_search() got an unexpected keyword argument 'wrong'" in str(e.value)
 
 
 @pytest.mark.asyncio
@@ -210,3 +260,104 @@ async def test_execute_run__no_message(monkeypatch, client):
     assert complete_run.called
     assert fetch_latest_assistant_message.called
     assert response == "🤯"
+
+
+@pytest.mark.asyncio
+async def test_get_thread_id(client):
+    client.beta.threads.create.return_value = namedtuple("Thread", ["id"])(
+        id="thread-1"
+    )
+    assert await bot.get_thread_id("channel-1") == "thread-1"
+    assert await bot.get_thread_id("channel-1") == "thread-1"
+
+
+@pytest.mark.asyncio
+async def test_tts(client):
+    with io.BytesIO() as ts:
+        ts.write(b"Hello")
+        ts.seek(0)
+        client.audio.speech.create.return_value = ts
+        assert await bot.tts("Hello") == b"Hello"
+
+
+@pytest.mark.asyncio
+async def test_stt(client):
+    client.audio.transcriptions.create.return_value = namedtuple(
+        "Transcription", ["text"]
+    )(text="Hello")
+    assert await bot.stt(b"Hello") == "Hello"
+
+
+@pytest.mark.asyncio
+async def test_fetch_latest_assistant_message(client):
+    client.beta.threads.messages.list.return_value = namedtuple("Response", ["data"])(
+        data=[
+            Message(
+                id="msg-1",
+                content=[
+                    TextContentBlock(
+                        type="text", text=Text(value="Hello", annotations=[])
+                    )
+                ],
+                status="completed",
+                role="assistant",
+                created_at=123,
+                files=[],
+                file_ids=[],
+                object="thread.message",
+                thread_id="thread-4",
+            ),
+        ]
+    )
+    assert await bot.fetch_latest_assistant_message("thread-1") == "Hello"
+
+
+@pytest.mark.asyncio
+async def test_fetch_latest_assistant_message__value_error(client):
+    client.beta.threads.messages.list.return_value = namedtuple("Response", ["data"])(
+        data=[
+            Message(
+                id="msg-1",
+                content=[
+                    ImageFileContentBlock(
+                        type="image_file",
+                        image_file=ImageFile(
+                            file_id="file-1",
+                        ),
+                    )
+                ],
+                status="completed",
+                role="assistant",
+                created_at=123,
+                files=[],
+                file_ids=[],
+                object="thread.message",
+                thread_id="thread-4",
+            ),
+        ]
+    )
+    with pytest.raises(ValueError) as e:
+        assert await bot.fetch_latest_assistant_message("thread-1") == "Hello"
+    assert "No assistant message found" in str(e.value)
+
+
+@pytest.mark.asyncio
+async def test_fetch_latest_assistant_message__empty(client):
+    client.beta.threads.messages.list.return_value = namedtuple("Response", ["data"])(
+        data=[
+            Message(
+                id="msg-1",
+                content=[],
+                status="completed",
+                role="assistant",
+                created_at=123,
+                files=[],
+                file_ids=[],
+                object="thread.message",
+                thread_id="thread-4",
+            ),
+        ]
+    )
+    with pytest.raises(ValueError) as e:
+        assert await bot.fetch_latest_assistant_message("thread-1") == "Hello"
+    assert "No assistant message found" in str(e.value)

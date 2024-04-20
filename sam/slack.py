@@ -11,6 +11,8 @@ from slack_bolt.async_app import AsyncSay
 from slack_sdk.web.async_client import AsyncWebClient
 from slack_sdk.web.client import WebClient
 
+import sam.bot
+
 from . import bot, config, utils
 
 logger = logging.getLogger(__name__)
@@ -57,7 +59,7 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
     channel_type = event["channel_type"]
     text = event["text"]
     text = text.replace(f"<@{bot_id}>", "Sam")
-    thread_id = await utils.get_thread_id(channel_id)
+    thread_id = await sam.bot.get_thread_id(channel_id)
     # We may only add messages to a thread while the assistant is not running
     files = []
     for file in event.get("files", []):
@@ -129,7 +131,7 @@ async def send_response(
         timestamp = event["ts"]
     except KeyError:
         timestamp = event["thread_ts"]
-    thread_id = await utils.get_thread_id(channel_id)
+    thread_id = await sam.bot.get_thread_id(channel_id)
 
     # We may wait for the messages being processed, before starting a new run
     async with (
