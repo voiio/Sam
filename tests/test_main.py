@@ -6,7 +6,16 @@ from click.testing import CliRunner
 from sam.__main__ import cli
 
 
-class TestCli:
+class TestRun:
+
+    def test_run(self):
+        runner = CliRunner()
+        result = runner.invoke(cli, ["run"])
+        assert result.exit_code == 0
+        assert "Usage: cli run [OPTIONS]" in result.output
+
+
+class TestAssistants:
 
     def test_list(self, monkeypatch):
         monkeypatch.chdir("tests/fixtures")
