@@ -6,10 +6,17 @@ import sys
 import click
 import openai
 import sentry_sdk
+from sentry_sdk.integrations.asyncio import AsyncioIntegration
 
 from . import config
 
-sentry_sdk.init(config.SENTRY_DSN)
+sentry_sdk.init(
+    dsn=config.SENTRY_DSN,
+    enable_tracing=True,
+    integrations=[
+        AsyncioIntegration(),
+    ],
+)
 
 
 @click.group()
