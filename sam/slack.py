@@ -72,7 +72,7 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
         redis.from_url(config.REDIS_URL) as redis_client,
         redis_client.lock(thread_id, timeout=10 * 60, thread_local=False),
     ):  # 10 minutes
-        file_ids, voice_prompt = await bot.add_message(
+        has_attachments, has_audio = await bot.add_message(
             thread_id=thread_id,
             content=text,
             files=files,
@@ -84,7 +84,9 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
         or event.get("parent_user_id") == bot_id
         or random.random() < config.RANDOM_RUN_RATIO  # nosec
     ):
-        await send_response(event, say, file_ids=file_ids, voice_prompt=voice_prompt)
+        await send_response(
+            event, say, file_search=has_attachments, voice_response=has_audio
+        )
 
 
 @functools.lru_cache(maxsize=128)
@@ -116,8 +118,8 @@ def get_user_specific_instructions(user_id: str) -> str:
 async def send_response(
     event: {str, Any},
     say: AsyncSay,
-    file_ids: list[str] = None,
-    voice_prompt: bool = False,
+    file_search: bool = False,
+    voice_response: bool = False,
 ):
     """Send a response to a message event from Slack."""
     logger.debug(f"process_run={json.dumps(event)}")
@@ -144,7 +146,7 @@ async def send_response(
             thread_id=thread_id,
             assistant_id=config.OPENAI_ASSISTANT_ID,
             additional_instructions=get_user_specific_instructions(user_id),
-            file_ids=file_ids,
+            file_search=file_search,
             **get_user_profile(user_id),
         )
 
@@ -158,7 +160,7 @@ async def send_response(
             f"Sam responded to the User={user_id} in Channel={channel_id} via Text"
         )
 
-        if voice_prompt:
+        if voice_response:
             await say.client.files_upload_v2(
                 filename="response.mp3",
                 title="Voice Response",

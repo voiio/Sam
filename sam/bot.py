@@ -87,7 +87,7 @@ async def execute_run(
     assistant_id: str,
     thread_id: str,
     additional_instructions: str = None,
-    file_ids: list[str] = None,
+    file_search: bool = False,
     **context,
 ) -> str:
     """Run the assistant on the OpenAI thread."""
@@ -110,7 +110,9 @@ async def execute_run(
             utils.func_to_tool(tools.fetch_website),
             utils.func_to_tool(tools.fetch_coworker_emails),
             utils.func_to_tool(tools.create_github_issue),
+            {"type": "file_search"},
         ],
+        tool_choice={"type": "file_search"} if file_search else "auto",
     )
     try:
         await complete_run(run.id, thread_id, **context)
@@ -171,7 +173,7 @@ async def add_message(
     thread_id: str,
     content: str,
     files: [(str, bytes)] = None,
-) -> tuple[list[str], bool]:
+) -> tuple[bool, bool]:
     """Add a message to the thread."""
     logger.info(f"Adding message to thread={thread_id}")
     client: openai.AsyncOpenAI = openai.AsyncOpenAI()
@@ -201,9 +203,12 @@ async def add_message(
         thread_id=thread_id,
         content=content,
         role=Roles.USER,
-        file_ids=file_ids,
+        attachments=[
+            {"file_id": file_id, "tools": [{"type": "file_search"}]}
+            for file_id in file_ids
+        ],
     )
-    return file_ids, voice_prompt
+    return bool(file_ids), voice_prompt
 
 
 async def tts(text: str) -> bytes:
