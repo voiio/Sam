@@ -200,7 +200,7 @@ async def add_message(
     await client.beta.threads.messages.create(
         thread_id=thread_id,
         content=content,
-        role="assistant",
+        role=Roles.USER,
         file_ids=file_ids,
     )
     return file_ids, voice_prompt
