@@ -1,3 +1,4 @@
+import logging
 from unittest import mock
 
 import pytest
@@ -66,6 +67,22 @@ async def test_handle_message(monkeypatch):
         file_ids=["file-1"],
         voice_prompt=False,
     )
+
+
+@pytest.mark.asyncio
+async def test_handle_message__subtype_deleted(caplog):
+    event = {
+        "type": "message",
+        "subtype": "message_deleted",
+        "hidden": True,
+        "channel": "C123ABC456",
+        "ts": "1358878755.000001",
+        "deleted_ts": "1358878749.000002",
+        "event_ts": "1358878755.000002",
+    }
+    with caplog.at_level(logging.DEBUG):
+        await slack.handle_message(event, None)
+    assert "Ignoring message_deleted event" in caplog.text
 
 
 def test_get_user_profile(monkeypatch):
