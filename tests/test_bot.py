@@ -15,6 +15,45 @@ def client(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_add_message(client):
+    assert await bot.add_message("thread-1", "Hello", []) == (False, False)
+    assert client.beta.threads.messages.create.called
+    assert client.beta.threads.messages.create.call_args == mock.call(
+        thread_id="thread-1", content="Hello", role="user", attachments=[]
+    )
+
+
+@pytest.mark.asyncio
+async def test_add_message__file(client):
+    client.files.create.return_value = namedtuple("File", ["id"])(id="file-123")
+    assert await bot.add_message("thread-1", "Hello", [("file-1", b"Hello")]) == (
+        True,
+        False,
+    )
+    assert client.beta.threads.messages.create.called
+    assert client.beta.threads.messages.create.call_args == mock.call(
+        thread_id="thread-1",
+        content="Hello",
+        role="user",
+        attachments=[{"file_id": "file-123", "tools": [{"type": "file_search"}]}],
+    )
+
+
+@pytest.mark.asyncio
+async def test_add_message__audio(client):
+    client.audio.transcriptions.create.return_value = namedtuple(
+        "Transcription", ["text"]
+    )(text="World")
+    assert await bot.add_message("thread-1", "Hello", [("file-1.mp3", b"World")]) == (
+        False,
+        True,
+    )
+    assert client.beta.threads.messages.create.call_args == mock.call(
+        thread_id="thread-1", content="Hello\nWorld", role="user", attachments=[]
+    )
+
+
+@pytest.mark.asyncio
 async def test_complete_run__max_retries(client):
     client.beta.threads.runs.cancel = mock.AsyncMock()
     with pytest.raises(RecursionError):

@@ -87,7 +87,7 @@ async def execute_run(
     assistant_id: str,
     thread_id: str,
     additional_instructions: str = None,
-    file_ids: list[str] = None,
+    file_search: bool = False,
     **context,
 ) -> str:
     """Run the assistant on the OpenAI thread."""
@@ -173,7 +173,7 @@ async def add_message(
     thread_id: str,
     content: str,
     files: [(str, bytes)] = None,
-) -> tuple[list[str], bool]:
+) -> tuple[bool, bool]:
     """Add a message to the thread."""
     logger.info(f"Adding message to thread={thread_id}")
     client: openai.AsyncOpenAI = openai.AsyncOpenAI()
@@ -208,7 +208,7 @@ async def add_message(
             for file_id in file_ids
         ],
     )
-    return file_ids, voice_prompt
+    return bool(file_ids), voice_prompt
 
 
 async def tts(text: str) -> bytes:

@@ -37,7 +37,7 @@ async def test_handle_message(monkeypatch):
         "text": "Hello",
         "files": [
             {
-                "url_private": "https://audio-samples.github.io/samples/mp3/blizzard_tts_unbiased/sample-0/real.mp3",
+                "url_private": "https://example.com/file.mp3",
                 "name": "file.mp3",
             }
         ],
@@ -57,15 +57,12 @@ async def test_handle_message(monkeypatch):
             "user": "user-1",
             "text": "Hello",
             "files": [
-                {
-                    "url_private": "https://audio-samples.github.io/samples/mp3/blizzard_tts_unbiased/sample-0/real.mp3",
-                    "name": "file.mp3",
-                }
+                {"url_private": "https://example.com/file.mp3", "name": "file.mp3"}
             ],
         },
         say,
-        file_ids=["file-1"],
-        voice_prompt=False,
+        file_search=["file-1"],
+        voice_response=False,
     )
 
 
@@ -159,14 +156,14 @@ async def test_send_response(monkeypatch):
             }
         ],
     }
-    await slack.send_response(event, say, voice_prompt=True)
+    await slack.send_response(event, say, voice_response=True)
 
     assert execute_run.called
     assert execute_run.call_args == mock.call(
         thread_id="thread-1",
         assistant_id=None,
         additional_instructions="user_instructions",
-        file_ids=None,
+        file_search=False,
         name="Sam",
     )
     assert tts.called
@@ -210,14 +207,14 @@ async def test_send_response__thread(monkeypatch):
             }
         ],
     }
-    await slack.send_response(event, say, voice_prompt=True)
+    await slack.send_response(event, say, voice_response=True)
 
     assert execute_run.called
     assert execute_run.call_args == mock.call(
         thread_id="thread-1",
         assistant_id=None,
         additional_instructions="user_instructions",
-        file_ids=None,
+        file_search=False,
         name="Sam",
     )
     assert tts.called
