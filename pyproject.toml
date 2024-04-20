@@ -87,6 +87,8 @@ testpaths = ["tests"]
 
 [tool.pytest_env]
 GITHUB_REPOS = 'voiio/sam'
+BRAVE_SEARCH_LATITUDE = '37.7749'
+BRAVE_SEARCH_LONGITUDE = '-122.4194'
 
 [tool.coverage.run]
 source = ["sam"]

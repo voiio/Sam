@@ -11,7 +11,6 @@ from email.mime.text import MIMEText
 from urllib.parse import urljoin
 
 import requests
-from bs4 import ParserRejectedMarkup
 from markdownify import markdownify as md
 from slack_sdk import WebClient, errors
 
@@ -104,18 +103,17 @@ def fetch_website(url: str, _context=None) -> str:
         response = requests.get(url, timeout=10)
     except requests.RequestException:
         logger.exception("Failed to fetch website: %s", url)
-        return "failed to fetch website"
+        return "invalid url"
     else:
         try:
             response.raise_for_status()
         except requests.HTTPError:
             logger.exception("Failed to fetch website: %s", url)
-            return "failed to fetch website"
+            return "website returned an error"
         else:
-            try:
-                return md(response.text)
-            except ParserRejectedMarkup:
-                return "failed to parse website"
+            return re.sub(
+                r" {2,}", " ", re.sub(r"\n\s+", "\n", md(response.text))
+            ).strip()
 
 
 def fetch_coworker_emails(_context=None) -> str:

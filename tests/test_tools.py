@@ -4,6 +4,8 @@ from unittest import mock
 
 import pytest
 import requests
+from bs4 import ParserRejectedMarkup
+from slack_sdk.errors import SlackClientError
 
 from sam import tools
 from sam.contrib import algolia
@@ -49,6 +51,47 @@ def test_web_search__with_coordinates():
         tools.web_search("ferien")
         == '{"Ferien Deutschland": "https://www.schulferien.org/deutschland/ferien/"}'
     )
+
+
+def test_fetch_website():
+    assert "GitHub, Inc" in tools.fetch_website("https://github.com/")
+
+
+def test_fetch_website__error():
+    assert tools.fetch_website("not-a-url") == "invalid url"
+
+
+def test_fetch_website__http_error(monkeypatch):
+    response = mock.MagicMock()
+    response.raise_for_status.side_effect = requests.HTTPError
+    monkeypatch.setattr(requests, "get", lambda *args, **kwargs: response)
+    assert tools.fetch_website("not-a-url") == "website returned an error"
+
+
+def test_fetch_coworker_emails(monkeypatch):
+    client = mock.MagicMock()
+    client.users_list.return_value = {
+        "members": [
+            {
+                "profile": {"email": "email1", "real_name": "name1"},
+                "deleted": False,
+                "is_bot": False,
+                "is_app_user": False,
+            },
+        ]
+    }
+    monkeypatch.setattr("sam.tools.WebClient", lambda token: client)
+    assert (
+        tools.fetch_coworker_emails()
+        == '{"name1": {"first_name": null, "last_name": null, "email": "email1", "status": null, "pronouns": null}}'
+    )
+
+
+def test_fetch_coworker_emails__error(monkeypatch):
+    client = mock.MagicMock()
+    client.users_list.side_effect = SlackClientError()
+    monkeypatch.setattr("sam.tools.WebClient", lambda token: client)
+    assert tools.fetch_coworker_emails() == "failed to fetch coworkers' profiles"
 
 
 def test_create_github_issue():
