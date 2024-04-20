@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import datetime
 import json
 import logging
 from pathlib import Path
 
 import openai
+from redis import asyncio as redis
 
 from . import config, tools, utils
 from .typing import AUDIO_FORMATS, Roles, RunStatus
@@ -56,22 +58,37 @@ async def call_tools(run: openai.types.beta.threads.Run, **context) -> None:
         raise ValueError(f"Run {run.id} does not require any tools")
     tool_outputs = []
     for tool_call in run.required_action.submit_tool_outputs.tool_calls:
-        kwargs = json.loads(tool_call.function.arguments)
         try:
             fn = getattr(tools, tool_call.function.name)
-        except KeyError as e:
+        except AttributeError as e:
             await client.beta.threads.runs.cancel(
                 run_id=run.id, thread_id=run.thread_id
             )
             raise IOError(
                 f"Tool {tool_call.function.name} not found, cancelling run {run.id}"
             ) from e
+        try:
+            kwargs = json.loads(tool_call.function.arguments)
+        except json.JSONDecodeError as e:
+            await client.beta.threads.runs.cancel(
+                run_id=run.id, thread_id=run.thread_id
+            )
+            raise IOError(
+                f"Invalid arguments for tool {tool_call.function.name}, cancelling run {run.id}"
+            ) from e
         logger.info("Running tool %s", tool_call.function.name)
         logger.debug("Tool %s arguments: %r", tool_call.function.name, kwargs)
+        try:
+            output = await fn(**kwargs, **context)
+        except Exception as e:
+            await client.beta.threads.runs.cancel(
+                run_id=run.id, thread_id=run.thread_id
+            )
+            raise e
         tool_outputs.append(
             {
                 "tool_call_id": tool_call.id,
-                "output": fn(**kwargs, _context={**context}),
+                "output": output,
             }
         )
     logger.info("Submitting tool outputs for run %s", run.id)
@@ -140,7 +157,7 @@ async def fetch_latest_assistant_message(thread_id: str) -> str:
         if message.role == Roles.ASSISTANT:
             try:
                 return await annotate_citations(message.content[0].text)
-            except IndexError as e:
+            except (IndexError, AttributeError) as e:
                 raise ValueError("No assistant message found") from e
 
 
@@ -166,7 +183,7 @@ async def annotate_citations(
 
     # Add footnotes to the end of the message before displaying to user
     message_content.value += "\n" + "\n".join(citations)
-    return message_content.value
+    return message_content.value.strip()
 
 
 async def add_message(
@@ -230,3 +247,30 @@ async def stt(audio: bytes) -> str:
         file=audio,
     )
     return response.text
+
+
+async def get_thread_id(slack_id) -> str:
+    """
+    Get the thread from the user_id or channel.
+
+    Args:
+        slack_id: The user or channel id.
+
+    Returns:
+        The thread id.
+    """
+    async with redis.from_url(config.REDIS_URL) as redis_client:
+        thread_id = await redis_client.get(slack_id)
+        if thread_id:
+            thread_id = thread_id.decode()
+        else:
+            thread = await openai.AsyncOpenAI().beta.threads.create()
+            thread_id = thread.id
+
+        midnight = datetime.datetime.combine(
+            datetime.date.today(), datetime.time.max, tzinfo=config.TIMEZONE
+        )
+
+        await redis_client.set(slack_id, thread_id, exat=int(midnight.timestamp()))
+
+    return thread_id

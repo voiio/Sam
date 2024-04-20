@@ -26,7 +26,7 @@ async def test_handle_message(monkeypatch):
     get_bot_user_id = mock.AsyncMock(return_value="bot-1")
     monkeypatch.setattr(slack, "get_bot_user_id", get_bot_user_id)
     monkeypatch.setattr(
-        "sam.utils.get_thread_id", mock.AsyncMock(return_value="thread-1")
+        "sam.bot.get_thread_id", mock.AsyncMock(return_value="thread-1")
     )
     say = mock.AsyncMock()
     event = {
@@ -139,7 +139,7 @@ async def test_send_response(monkeypatch):
         slack, "get_user_profile", lambda *args, **kwargs: {"name": "Sam"}
     )
     monkeypatch.setattr(
-        "sam.utils.get_thread_id", mock.AsyncMock(return_value="thread-1")
+        "sam.bot.get_thread_id", mock.AsyncMock(return_value="thread-1")
     )
     say = mock.AsyncMock()
     event = {
@@ -190,7 +190,7 @@ async def test_send_response__thread(monkeypatch):
         slack, "get_user_profile", lambda *args, **kwargs: {"name": "Sam"}
     )
     monkeypatch.setattr(
-        "sam.utils.get_thread_id", mock.AsyncMock(return_value="thread-1")
+        "sam.bot.get_thread_id", mock.AsyncMock(return_value="thread-1")
     )
     say = mock.AsyncMock()
     event = {
