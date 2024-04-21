@@ -19,6 +19,19 @@ Sam uses OpenAI's assistant API to fine-tune ChatGPT to:
 
 to provide a work-colleague like experience.
 
+## Features
+
+Like any good co-worker Sam can
+
+* search the web,
+* browse websites,
+* search your companies products,
+* read internal documents,
+* send emails,
+* create GitHub issues,
+
+and soon spend half the day in meetings and the other half in the kitchen.
+
 ## Sneak peek of Sam in action
 
 ![screenshot.png](screenshot.png)

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import functools
 import json
 import logging
@@ -8,12 +10,14 @@ from typing import Any
 
 import redis.asyncio as redis
 from slack_bolt.async_app import AsyncSay
+from slack_sdk import WebClient, errors
 from slack_sdk.web.async_client import AsyncWebClient
 from slack_sdk.web.client import WebClient
 
 import sam.bot
 
 from . import bot, config, utils
+from .utils import logger
 
 logger = logging.getLogger(__name__)
 
@@ -183,3 +187,43 @@ def get_app():  # pragma: no cover
     app.event("message")(handle_message)
     app.event("app_mention")(send_response)
     return app
+
+
+def fetch_coworker_contacts(_context=None) -> str:
+    """
+    Fetch profile data about your coworkers from Slack.
+
+    The profiles include:
+    - first & last name
+    - email address
+    - status
+    - pronouns
+    """
+    client = WebClient(token=config.SLACK_BOT_TOKEN)
+    try:
+        response = client.users_list()
+    except errors.SlackClientError:
+        logger.exception("Failed to fetch coworkers' profiles")
+        return "failed to fetch coworkers' profiles"
+    else:
+        logger.debug("Fetched coworkers' profiles: %r", response["members"])
+
+        profiles = {}
+        for member in response["members"]:
+            profile = member.get("profile", {})
+            if not any(
+                [
+                    member["deleted"],
+                    member["is_bot"],
+                    member["is_app_user"],
+                    "real_name" not in profile,
+                ]
+            ):
+                profiles[profile["real_name"]] = {
+                    "first_name": profile.get("first_name"),
+                    "last_name": profile.get("last_name"),
+                    "email": profile.get("email"),
+                    "status": profile.get("status_text"),
+                    "pronouns": profile.get("pronouns"),
+                }
+        return json.dumps(profiles)

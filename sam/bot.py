@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import datetime
 import json
 import logging
 from pathlib import Path
@@ -8,7 +7,7 @@ from pathlib import Path
 import openai
 from redis import asyncio as redis
 
-from . import config, tools, utils
+from . import config, utils
 from .typing import AUDIO_FORMATS, Roles, RunStatus
 
 logger = logging.getLogger(__name__)
@@ -22,7 +21,7 @@ async def complete_run(run_id: str, thread_id: str, *, retry: int = 0, **context
 
     Raises:
         RecursionError: If the run status is not "completed" after 10 retries.
-        IOError: If the run status is not "completed" or "requires_action".
+        OSError: If the run status is not "completed" or "requires_action".
         ValueError: If the run requires tools but none are provided.
     """
     client: openai.AsyncOpenAI = openai.AsyncOpenAI()
@@ -42,7 +41,7 @@ async def complete_run(run_id: str, thread_id: str, *, retry: int = 0, **context
         case RunStatus.COMPLETED:
             return
         case _:
-            raise IOError(f"Run {run.id} failed with status {run.status}")
+            raise OSError(f"Run {run.id} failed with status {run.status}")
 
 
 async def call_tools(run: openai.types.beta.threads.Run, **context) -> None:
@@ -50,7 +49,7 @@ async def call_tools(run: openai.types.beta.threads.Run, **context) -> None:
     Call the tools required by the run.
 
     Raises:
-        IOError: If a tool is not found.
+        OSError: If a tool is not found.
         ValueError: If the run does not require any tools.
     """
     client: openai.AsyncOpenAI = openai.AsyncOpenAI()
@@ -59,12 +58,12 @@ async def call_tools(run: openai.types.beta.threads.Run, **context) -> None:
     tool_outputs = []
     for tool_call in run.required_action.submit_tool_outputs.tool_calls:
         try:
-            fn = getattr(tools, tool_call.function.name)
-        except AttributeError as e:
+            fn = config.TOOLS[tool_call.function.name]
+        except KeyError as e:
             await client.beta.threads.runs.cancel(
                 run_id=run.id, thread_id=run.thread_id
             )
-            raise IOError(
+            raise OSError(
                 f"Tool {tool_call.function.name} not found, cancelling run {run.id}"
             ) from e
         try:
@@ -73,18 +72,20 @@ async def call_tools(run: openai.types.beta.threads.Run, **context) -> None:
             await client.beta.threads.runs.cancel(
                 run_id=run.id, thread_id=run.thread_id
             )
-            raise IOError(
+            raise OSError(
                 f"Invalid arguments for tool {tool_call.function.name}, cancelling run {run.id}"
             ) from e
         logger.info("Running tool %s", tool_call.function.name)
         logger.debug("Tool %s arguments: %r", tool_call.function.name, kwargs)
         try:
-            output = await fn(**kwargs, **context)
+            output = fn(**kwargs, _context=context)
         except Exception as e:
             await client.beta.threads.runs.cancel(
                 run_id=run.id, thread_id=run.thread_id
             )
-            raise e
+            raise OSError(
+                f"Tool {tool_call.function.name} failed, cancelling run {run.id}"
+            ) from e
         tool_outputs.append(
             {
                 "tool_call_id": tool_call.id,
@@ -116,24 +117,29 @@ async def execute_run(
     logger.debug("Additional instructions: %r", additional_instructions)
     logger.debug("Context: %r", context)
     client: openai.AsyncOpenAI = openai.AsyncOpenAI()
+    tools = [
+        *config.TOOLS.keys(),
+        {"type": "file_search"},
+    ]
+    logger.debug("Tools: %r", tools)
     run = await client.beta.threads.runs.create(
         thread_id=thread_id,
         assistant_id=assistant_id,
         additional_instructions=additional_instructions,
-        tools=[
-            utils.func_to_tool(tools.send_email),
-            utils.func_to_tool(tools.web_search),
-            utils.func_to_tool(tools.platform_search),
-            utils.func_to_tool(tools.fetch_website),
-            utils.func_to_tool(tools.fetch_coworker_emails),
-            utils.func_to_tool(tools.create_github_issue),
-            {"type": "file_search"},
-        ],
+        # OpenAI suggests a limit of 20,000 tokens for the prompt using the file search tool.
+        # See also: https://platform.openai.com/docs/assistants/how-it-works/max-completion-and-max-prompt-tokens
+        max_prompt_tokens=(
+            min(20000, config.MAX_PROMPT_TOKENS)
+            if file_search
+            else config.MAX_PROMPT_TOKENS
+        ),
+        max_completion_tokens=config.MAX_COMPLETION_TOKENS,
+        tools=tools,
         tool_choice={"type": "file_search"} if file_search else "auto",
     )
     try:
         await complete_run(run.id, thread_id, **context)
-    except (RecursionError, IOError, ValueError):
+    except (RecursionError, OSError, ValueError):
         logger.exception("Run %s failed", run.id)
         return "🤯"
 
@@ -267,10 +273,6 @@ async def get_thread_id(slack_id) -> str:
             thread = await openai.AsyncOpenAI().beta.threads.create()
             thread_id = thread.id
 
-        midnight = datetime.datetime.combine(
-            datetime.date.today(), datetime.time.max, tzinfo=config.TIMEZONE
-        )
-
-        await redis_client.set(slack_id, thread_id, exat=int(midnight.timestamp()))
+        await redis_client.set(slack_id, thread_id)
 
     return thread_id

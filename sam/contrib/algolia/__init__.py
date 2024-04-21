@@ -1,10 +1,11 @@
 """AlgoliaSearch Search API client to perform searches on Algolia."""
 
 import abc
-import os
 
 import requests
 from algoliasearch.search_client import SearchClient
+
+from . import config
 
 __all__ = ["get_client", "AlgoliaSearchAPIError"]
 
@@ -63,12 +64,11 @@ class AlgoliaSearchStub(AbstractAlgoliaSearch):
 
 
 def get_client(index=None) -> AbstractAlgoliaSearch:
-    index = index or os.getenv("ALGOLIA_SEARCH_INDEX", "event")
-    if api_key := os.getenv("ALGOLIA_SEARCH_API_KEY", None):  # pragma: no cover
+    if config.ALGOLIA_SEARCH_API_KEY:  # pragma: no cover
         return AlgoliaSearch(
-            application_id=os.getenv("ALGOLIA_APPLICATION_ID"),
-            api_key=api_key,
-            index=index,
+            application_id=config.ALGOLIA_APPLICATION_ID,
+            api_key=config.ALGOLIA_SEARCH_API_KEY,
+            index=index or config.ALGOLIA_SEARCH_INDEX,
         )
     else:
         return AlgoliaSearchStub()
