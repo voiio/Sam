@@ -4,6 +4,7 @@ import functools
 import json
 import logging
 import random  # nosec
+import re
 import urllib.request
 from datetime import datetime
 from typing import Any
@@ -158,7 +159,7 @@ async def send_response(
 
         msg = await say(
             channel=say.channel,
-            text=text_response,
+            text=markdown2mrkdwn(text_response),
             mrkdwn=True,
             thread_ts=event.get("thread_ts", None),
         )
@@ -227,3 +228,19 @@ def fetch_coworker_contacts(_context=None) -> str:
                     "pronouns": profile.get("pronouns"),
                 }
         return json.dumps(profiles)
+
+
+MD_MRKDWN_PATTERN = [
+    (re.compile(r"[*_]([^*_]*?)[*_]"), r"_\1_"),  # italic
+    (re.compile(r"~{2}(.*?)~{2}"), r"~\1~"),  # strikethrough
+    (re.compile(r"[*_]{2}([^*_]*?)[*_]{2}"), r"*\1*"),  # bold
+    (re.compile(r"\[(.*?)]\((.*?)\)", re.DOTALL), r"<\2|\1>"),  # link
+    (re.compile(r"^#{1,6}\s+(.*?)$", re.MULTILINE), r"*\1*"),  # heading
+]
+
+
+def markdown2mrkdwn(text: str) -> str:
+    """Convert markdown to Slack's mrkdwn format."""
+    for pattern, replacement in MD_MRKDWN_PATTERN:
+        text = pattern.sub(replacement, text)
+    return text

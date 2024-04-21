@@ -219,3 +219,23 @@ async def test_send_response__thread(monkeypatch):
     )
     assert tts.called
     assert tts.call_args == mock.call("Hello World!")
+
+
+def test_markdown2mrkdwn():
+    assert slack.markdown2mrkdwn("Hello **World**!") == "Hello *World*!", "Bold"
+    assert slack.markdown2mrkdwn("Hello *World*!") == "Hello _World_!", "Italic"
+    assert (
+        slack.markdown2mrkdwn("Hello ~~World~~!") == "Hello ~World~!"
+    ), "Strikethrough"
+    assert (
+        slack.markdown2mrkdwn("Hello [World](https://example.com)!")
+        == "Hello <https://example.com|World>!"
+    ), "Link"
+    assert (
+        slack.markdown2mrkdwn("Hello [World\n](https://example.com)!")
+        == "Hello <https://example.com|World\n>!"
+    ), "Link"
+    assert (
+        slack.markdown2mrkdwn("# Heading 1\n\n## Heading 2")
+        == "*Heading 1*\n\n*Heading 2*"
+    ), "Heading"
