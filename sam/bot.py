@@ -118,7 +118,7 @@ async def execute_run(
     logger.debug("Context: %r", context)
     client: openai.AsyncOpenAI = openai.AsyncOpenAI()
     tools = [
-        *config.TOOLS.keys(),
+        *(tool.declaration for tool in config.TOOLS.values()),
         {"type": "file_search"},
     ]
     logger.debug("Tools: %r", tools)
