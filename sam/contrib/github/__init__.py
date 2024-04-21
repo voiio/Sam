@@ -1,11 +1,10 @@
 """GitHub API client."""
 
 import abc
-import os
 
 import requests
 
-from sam import config
+from . import config
 
 __all__ = ["get_client", "GitHubAPIError"]
 
@@ -73,6 +72,6 @@ class GitHubAPIWrapperStub(AbstractGitHubAPIWrapper):
 
 
 def get_client():
-    if token := os.getenv("GITHUB_TOKEN"):
-        return GitHubAPIWrapper(token=token)
+    if config.GITHUB_TOKEN:
+        return GitHubAPIWrapper(token=config.GITHUB_TOKEN)
     return GitHubAPIWrapperStub()

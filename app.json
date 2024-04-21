@@ -27,6 +27,74 @@
     "OPENAI_ASSISTANT_ID": {
       "description": "Your OpenAI assistant ID, starting with 'asst_'",
       "required": true
+    },
+    "TTS_VOICE": {
+      "description": "The voice to use for text-to-speech. Defaults to 'alloy'.",
+      "required": false
+    },
+    "TTS_MODEL": {
+      "description": "The model to use for text-to-speech. Defaults to 'tts-1-hd'.",
+      "required": false
+    },
+    "MAX_PROMPT_TOKENS": {
+      "description": "The maximum number of tokens to use in a prompt.",
+      "required": false
+    },
+    "MAX_COMPLETION_TOKENS": {
+      "description": "The maximum number of tokens to use in a response.",
+      "required": false
+    },
+    "RANDOM_RUN_RATIO": {
+      "description": "How often the bot randomly responds in a group channel. Defaults to 0 (never).",
+      "required": false
+    },
+    "TIMEZONE": {
+      "description": "The timezone to use for scheduling. Defaults to 'UTC'.",
+      "required": false
+    },
+    "EMAIL_URL": {
+      "description": "The URL to send emails to. Disabled if not set.",
+      "required": false
+    },
+    "FROM_EMAIL": {
+      "description": "The email address to send emails from. Disabled if not set.",
+      "required": false
+    },
+    "EMAIL_WHITE_LIST": {
+      "description": "A comma-separated list of email addresses to allow sending emails to. Disabled if not set.",
+      "required": false
+    },
+    "BRAVE_SEARCH_API_KEY": {
+      "description": "Your Brave Search API key. Disabled if not set.",
+      "required": false
+    },
+    "BRAVE_SEARCH_LONGITUDE": {
+      "description": "The longitude to use for Brave Search. Disabled if not set.",
+      "required": false
+    },
+    "BRAVE_SEARCH_LATITUDE": {
+      "description": "The latitude to use for Brave Search. Disabled if not set.",
+      "required": false
+    },
+    "SENTRY_DSN": {
+      "description": "Your Sentry DSN. Disabled if not set.",
+      "required": false
+    },
+    "GITHUB_REPOS": {
+      "description": "A comma-separated list of GitHub the bot can post to. Disabled if not set.",
+      "required": false
+    },
+    "ALGOLIA_SEARCH_API_KEY": {
+      "description": "Your Algolia search API key. Disabled if not set.",
+      "required": false
+    },
+    "ALGOLIA_APPLICATION_ID": {
+      "description": "Your Algolia application ID. Disabled if not set.",
+      "required": false
+    },
+    "ALGOLIA_SEARCH_INDEX": {
+      "description": "The Algolia search index to use. Disabled if not set.",
+      "required": false
     }
   },
   "formation": {

@@ -1,4 +1,4 @@
-from sam.config import AssistantConfig
+from sam.utils import AssistantConfig
 
 
 class TestAssistantConfig:

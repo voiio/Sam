@@ -89,6 +89,7 @@ testpaths = ["tests"]
 GITHUB_REPOS = 'voiio/sam'
 BRAVE_SEARCH_LATITUDE = '37.7749'
 BRAVE_SEARCH_LONGITUDE = '-122.4194'
+FROM_EMAIL = "Sam <sam@voiio.de>"
 
 [tool.coverage.run]
 source = ["sam"]
@@ -109,3 +110,27 @@ combine_as_imports = true
 
 [tool.pydocstyle]
 add_ignore = "D1"
+
+
+[tool.sam.tools.send_email]
+path = "sam.tools:send_email"
+additional_instructions = "You may ask for confirmation before sending an email."
+
+[tool.sam.tools.fetch_website]
+path = "sam.tools:fetch_website"
+additional_instructions = "You may fetch multiple websites and browse the sites."
+
+[tool.sam.tools.fetch_coworker_contacts]
+path = "sam.slack:fetch_coworker_contacts"
+
+[tool.sam.tools.web_search]
+path = "sam.contrib.brave.tools:search"
+additional_instructions = "You MUST ALWAYS always fetch a website and read it."
+
+[tool.sam.tools.create_github_issue]
+path = "sam.contrib.github.tools:create_github_issue"
+additional_instructions = "You MUST ALWAYS write the issue in English."
+
+[tool.sam.tools.platform_search]
+path = "sam.contrib.algolia.tools:search"
+additional_instructions = "The voiio platform should be searched before searching the web."

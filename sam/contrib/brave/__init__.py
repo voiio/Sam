@@ -1,9 +1,10 @@
 """Brave Search API client to perform web searches."""
 
 import abc
-import os
 
 import requests
+
+from . import config
 
 __all__ = ["get_client", "BraveSearchAPIError"]
 
@@ -169,6 +170,6 @@ class BraveSearchAPIWrapperStub(AbstractBraveSearchAPIWrapper):
 
 
 def get_client() -> AbstractBraveSearchAPIWrapper:
-    if api_key := os.getenv("BRAVE_SEARCH_API_KEY"):  # pragma: no cover
-        return BraveSearchAPIWrapper(api_key=api_key)
+    if config.BRAVE_SEARCH_API_KEY:  # pragma: no cover
+        return BraveSearchAPIWrapper(api_key=config.BRAVE_SEARCH_API_KEY)
     return BraveSearchAPIWrapperStub()

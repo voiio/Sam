@@ -11,7 +11,7 @@ from openai.types.beta.threads import (
     TextContentBlock,
 )
 
-from sam import bot
+from sam import bot, config
 
 
 @pytest.fixture
@@ -74,7 +74,7 @@ async def test_call_tools__io_error_fn_name(client):
     tool_call = mock.MagicMock()
     tool_call.function.name = "does_no_exist"
     run.required_action.submit_tool_outputs.tool_calls = [tool_call]
-    with pytest.raises(IOError) as e:
+    with pytest.raises(OSError) as e:
         await bot.call_tools(run)
     assert "Tool does_no_exist not found" in str(e.value)
 
@@ -86,7 +86,7 @@ async def test_call_tools__io_error_fn_kwargs(client):
     tool_call.function.name = "web_search"
     tool_call.function.arguments = "{'notJSON'}"
     run.required_action.submit_tool_outputs.tool_calls = [tool_call]
-    with pytest.raises(IOError) as e:
+    with pytest.raises(OSError) as e:
         await bot.call_tools(run)
     assert "Invalid arguments" in str(e.value)
 
@@ -98,9 +98,9 @@ async def test_call_tools__exception(client):
     tool_call.function.name = "web_search"
     tool_call.function.arguments = '{"wrong": "args"}'
     run.required_action.submit_tool_outputs.tool_calls = [tool_call]
-    with pytest.raises(TypeError) as e:
+    with pytest.raises(OSError) as e:
         await bot.call_tools(run)
-    assert "web_search() got an unexpected keyword argument 'wrong'" in str(e.value)
+    assert "Tool web_search failed, cancelling run" in str(e.value)
 
 
 @pytest.mark.asyncio
@@ -114,11 +114,11 @@ async def test_complete_run__max_retries(client):
 
 @pytest.mark.asyncio
 async def test_complete_run__requires_action(client, monkeypatch):
-    web_search = mock.AsyncMock()
-    monkeypatch.setattr("sam.tools.web_search", web_search)
+    web_search = mock.Mock()
+    config.TOOLS["web_search"] = web_search
     required_action = mock.Mock()
     tool_call = mock.Mock()
-    tool_call.function.arguments = "{}"
+    tool_call.function.arguments = '{"query": "ferien"}'
     tool_call.function.name = "web_search"
     required_action.submit_tool_outputs.tool_calls = [tool_call]
     client.beta.threads.runs.retrieve.return_value = namedtuple(
@@ -131,6 +131,7 @@ async def test_complete_run__requires_action(client, monkeypatch):
     )
     with pytest.raises(RecursionError):
         await bot.complete_run(run_id="run-1", thread_id="thread-1")
+    config.TOOLS = dict(config.load_tools())
     assert web_search.called
 
 
@@ -161,7 +162,7 @@ async def test_complete_run__unexpected_status(monkeypatch, client):
     client.beta.threads.runs.retrieve.return_value = namedtuple(
         "Run", ["id", "status"]
     )(id="run-1", status="failed")
-    with pytest.raises(IOError):
+    with pytest.raises(OSError):
         await bot.complete_run(run_id="run-1", thread_id="thread-1")
 
 

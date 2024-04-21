@@ -2,10 +2,15 @@ from __future__ import annotations
 
 import asyncio
 import enum
+import functools
+import importlib
 import inspect
 import logging
 import random
 import typing
+from dataclasses import dataclass
+from functools import cached_property
+from pathlib import Path
 
 import yaml
 
@@ -28,7 +33,9 @@ type_map = {
 }
 
 
-def func_to_tool(fn: callable) -> dict:
+def func_to_tool(
+    fn_name: str, fn: callable, additional_instructions: str = None
+) -> dict:
     """
     Convert a function to an OpenAI tool definition based on signature and docstring.
 
@@ -50,10 +57,11 @@ def func_to_tool(fn: callable) -> dict:
     return {
         "type": "function",
         "function": {
-            "name": fn.__name__,
+            "name": fn_name,
             "description": "\n".join(
                 filter(None, (line.strip() for line in description.splitlines()))
-            ),
+            )
+            + (f"\n\n{additional_instructions}" if additional_instructions else ""),
             "parameters": {
                 "type": "object",
                 "properties": dict(params_to_props(fn, params, doc_data)),
@@ -87,3 +95,38 @@ def params_to_props(fn, params, doc_data):
 async def backoff(retries: int, max_jitter: int = 10):
     """Exponential backoff timer with a random jitter."""
     await asyncio.sleep(2**retries + random.random() * max_jitter)  # nosec
+
+
+@dataclass
+class AssistantConfig:
+    name: str
+    assistant_id: str
+    instructions: list[str]
+    project: str
+
+    @cached_property
+    def system_prompt(self):
+        return "\n\n".join(
+            Path(instruction).read_text() for instruction in self.instructions
+        )
+
+
+@dataclass
+class Tool:
+    name: str
+    path: str
+    additional_instructions: str | None = None
+    fn: callable = None
+
+    def __post_init__(self):
+        module_name, fn_name = self.path.split(":")
+        try:
+            self.fn = getattr(importlib.import_module(module_name), fn_name)
+        except (ImportError, AttributeError) as e:
+            raise ImportError(f"Failed to import {self.path}") from e
+        self.declaration: dict = func_to_tool(
+            self.name, self.fn, additional_instructions=self.additional_instructions
+        )
+
+    def __call__(self, *args, **kwargs):
+        return self.fn(*args, **kwargs)

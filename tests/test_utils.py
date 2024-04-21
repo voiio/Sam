@@ -32,11 +32,11 @@ def test_func_to_tool():
         """
         return a
 
-    tool = utils.func_to_tool(fn)
+    tool = utils.func_to_tool("my_unique_function", fn)
     assert tool == {
         "type": "function",
         "function": {
-            "name": "fn",
+            "name": "my_unique_function",
             "description": "Function description.",
             "parameters": {
                 "type": "object",
