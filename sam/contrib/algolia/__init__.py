@@ -40,7 +40,8 @@ class AlgoliaSearch(AbstractAlgoliaSearch):  # pragma: no cover
                 query,
                 request_options={
                     **self.params,
-                    "length": 5,
+                    "page": 1,
+                    "hitsPerPage": 5,
                 },
             )
         except requests.HTTPError as e:
