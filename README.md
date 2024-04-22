@@ -1,40 +1,29 @@
+![screenshot.png](screenshot.png)
+
+# Sam – AI powered co-workers
+
 [![PyPi Version](https://img.shields.io/pypi/v/opensam.svg)](https://pypi.python.org/pypi/opensam/)
 [![Test Coverage](https://codecov.io/gh/voiio/sam/branch/main/graph/badge.svg)](https://codecov.io/gh/voiio/sam)
 [![GitHub License](https://img.shields.io/github/license/voiio/sam)](https://raw.githubusercontent.com/voiio/sam/master/LICENSE)
 
-# Sam – cuz your company is nothing without Sam
-
-![meme](https://repository-images.githubusercontent.com/726003479/24d020ac-3ac5-401c-beae-7a6103c4e7ae)
-
-Sam is a Slack bot that uses OpenAI's ChatGPT model to provide a work-colleague
-like experience, right in your Slack workspace.
-
-Everyone in your company has instant access to the most powerful AI companion.
-
-Sam uses OpenAI's assistant API to fine-tune ChatGPT to:
-
-* a specific personality traits,
-* provide domain specific knowledge
-* and company specific context
-
-to provide a work-colleague like experience.
+Sam is an AI-powered co-worker to empower all your colleagues.
+Sam lives in company's Slack workspace and is always ready to help.
 
 ## Features
 
 Like any good co-worker Sam can
 
-* search the web,
-* browse websites,
-* search your companies products,
-* read internal documents,
-* send emails,
-* create GitHub issues,
+* 🧑‍💻search the web,
+* 🌐browse websites,
+* 🔎search your companies products,
+* 📈read internal documents,
+* 📧send emails,
+* <img src="https://github.githubassets.com/images/icons/emoji/octocat.png" style="height:1em"> create GitHub issues,
 
 and soon spend half the day in meetings and the other half in the kitchen.
 
-## Sneak peek of Sam in action
-
-![screenshot.png](screenshot.png)
+Needless to say, Sam can do all of those things faster, cheaper and better
+than most of your human colleagues 😏
 
 ## Installation
 1. Create a new Slack app, as described below.
@@ -51,3 +40,21 @@ and soon spend half the day in meetings and the other half in the kitchen.
 3. Click `Create App` and then `Install to Workspace`.
 4. Copy the `Bot User OAuth Access Token` and paste it into the `SLACK_BOT_TOKEN` field in the Heroku app settings.
 5. Create a new `App-Level Tokens` under `Basic Infomation` and copy the token into the `SLACK_APP_TOKEN` field in the Heroku app settings.
+
+
+### How it works
+
+Sam is a Slack bot that uses OpenAI's ChatGPT latest and grates AI model
+to provide a work-colleague like experience, right in your Slack workspace.
+
+Everyone in your company has instant access to the most powerful AI companion.
+
+Sam uses OpenAI's assistant API to fine-tune ChatGPT to:
+
+* a specific personality traits,
+* provide domain specific knowledge
+* and company specific context
+
+to provide a work-colleague like experience.
+
+![meme](https://repository-images.githubusercontent.com/726003479/24d020ac-3ac5-401c-beae-7a6103c4e7ae)

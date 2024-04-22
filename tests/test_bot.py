@@ -22,14 +22,12 @@ def client(monkeypatch):
 
 
 class TestRunError:
-
     def test_msg(self):
         run_error = bot.RunError(run=namedtuple("Run", ["status"])("failed"))
         assert str(run_error) == "Run failed"
 
 
 class TestIncompleteRunError:
-
     def test_msg(self):
         run_error = bot.IncompleteRunError(
             run=namedtuple("Run", ["status", "incomplete_details"])(

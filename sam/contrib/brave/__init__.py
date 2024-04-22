@@ -14,7 +14,6 @@ class BraveSearchAPIError(requests.HTTPError):
 
 
 class AbstractBraveSearchAPIWrapper(abc.ABC):  # pragma: no cover
-
     @abc.abstractmethod
     def search(self, query):
         return NotImplemented
