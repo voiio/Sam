@@ -75,6 +75,7 @@ docs = [
 
 [project.urls]
 Project-URL = "https://github.com/voiio/Sam"
+Documentation = "https://code.voiio.de/Sam/"
 Changelog = "https://github.com/voiio/Sam/releases"
 
 [tool.flit.module]
