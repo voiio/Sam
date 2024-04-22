@@ -71,10 +71,11 @@ lint = [
 docs = [
   "pydoc-markdown",
   "mkdocs-material",
+  "pymdown-extensions",
 ]
 
 [project.urls]
-Project-URL = "https://github.com/voiio/Sam"
+Project-URL = "https://github.com/voiio/Sam/"
 Documentation = "https://code.voiio.de/Sam/"
 Changelog = "https://github.com/voiio/Sam/releases"
 
@@ -134,11 +135,22 @@ pre-render = [
 [tool.pydoc-markdown.renderer.mkdocs_config]
 site_name = "Sam"
 theme = "material"
+markdown_extensions = [
+  "pymdownx.highlight",
+  "pymdownx.inlinehilite",
+  "pymdownx.snippets",
+  "pymdownx.superfences",
+]
+
+[[tool.pydoc-markdown.renderer.pages]]
+title = "Setup"
+name = "index"
+source = "README.md"
 
 [[tool.pydoc-markdown.renderer.pages]]
 title = "Usage"
-name = "index"
-source = "README.md"
+name = "usage"
+source = "USAGE.md"
 
 [[tool.pydoc-markdown.renderer.pages]]
 title = "Configuration"
