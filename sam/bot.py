@@ -251,6 +251,7 @@ async def stt(audio: bytes) -> str:
     response = await client.audio.transcriptions.create(
         model="whisper-1",
         file=audio,
+        prompt=config.STT_PROMPT,
     )
     return response.text
 

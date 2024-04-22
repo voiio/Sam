@@ -27,6 +27,8 @@ OPENAI_ASSISTANT_ID: str = os.getenv("OPENAI_ASSISTANT_ID")
 TTS_VOICE: str = os.getenv("TTS_VOICE", "alloy")
 #: The OpenAI model used for speech-to-text.
 TTS_MODEL: str = os.getenv("TTS_MODEL", "tts-1-hd")
+#: Specific words or acronyms for speech-to-text.
+STT_PROMPT: str = os.getenv("STT_PROMPT", "")
 #: The maximum number of tokens allowed in a prompt.
 MAX_PROMPT_TOKENS: int | None = (
     int(os.getenv("MAX_PROMPT_TOKENS")) if "MAX_PROMPT_TOKENS" in os.environ else None
