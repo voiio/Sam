@@ -13,6 +13,27 @@ from .typing import AUDIO_FORMATS, Roles, RunStatus
 logger = logging.getLogger(__name__)
 
 
+class RunError(OSError):
+    """Raised when a completion fails."""
+
+    def __init__(
+        self, message: str | None = None, *, run: openai.types.beta.threads.Run
+    ):
+        super().__init__(message or f"Run {run.status}")
+        self.run = run
+
+
+class IncompleteRunError(RunError):
+    """Raised when a run is incomplete."""
+
+    def __init__(
+        self, message: str | None = None, *, run: openai.types.beta.threads.Run
+    ):
+        super().__init__(
+            message or f"Run {run.status}: {run.incomplete_details.reason}", run=run
+        )
+
+
 async def complete_run(run_id: str, thread_id: str, *, retry: int = 0, **context):
     """
     Wait for the run to complete.
@@ -40,8 +61,10 @@ async def complete_run(run_id: str, thread_id: str, *, retry: int = 0, **context
             await complete_run(run_id, thread_id, **context)
         case RunStatus.COMPLETED:
             return
+        case RunStatus.INCOMPLETE:
+            raise IncompleteRunError(run=run)
         case _:
-            raise OSError(f"Run {run.id} failed with status {run.status}")
+            raise RunError(run=run)
 
 
 async def call_tools(run: openai.types.beta.threads.Run, **context) -> None:
@@ -139,7 +162,7 @@ async def execute_run(
     )
     try:
         await complete_run(run.id, thread_id, **context)
-    except (RecursionError, OSError, ValueError):
+    except (RecursionError, RunError):
         logger.exception("Run %s failed", run.id)
         return "🤯"
 

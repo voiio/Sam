@@ -21,6 +21,25 @@ def client(monkeypatch):
     return client
 
 
+class TestRunError:
+
+    def test_msg(self):
+        run_error = bot.RunError(run=namedtuple("Run", ["status"])("failed"))
+        assert str(run_error) == "Run failed"
+
+
+class TestIncompleteRunError:
+
+    def test_msg(self):
+        run_error = bot.IncompleteRunError(
+            run=namedtuple("Run", ["status", "incomplete_details"])(
+                "failed",
+                namedtuple("IncompleteDetails", ["reason"])("max_tokens_exceeded"),
+            )
+        )
+        assert str(run_error) == "Run failed: max_tokens_exceeded"
+
+
 @pytest.mark.asyncio
 async def test_add_message(client):
     assert await bot.add_message("thread-1", "Hello", []) == (False, False)
