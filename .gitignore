@@ -162,3 +162,8 @@ cython_debug/
 
 # Flit SCM version file
 _version.py
+
+# mkdocs && pydoc
+mkdocs.yml
+.generated-files.txt
+docs/

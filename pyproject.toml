@@ -68,6 +68,10 @@ lint = [
   "isort==5.13.2",
   "pydocstyle[toml]==6.3.0",
 ]
+docs = [
+  "pydoc-markdown",
+  "mkdocs-material",
+]
 
 [project.urls]
 Project-URL = "https://github.com/voiio/Sam"
@@ -111,6 +115,33 @@ combine_as_imports = true
 [tool.pydocstyle]
 add_ignore = "D1"
 
+[[tool.pydoc-markdown.loaders]]
+type = "python"
+search_path = ["."]
+
+[tool.pydoc-markdown.renderer]
+type = "mkdocs"
+output_directory = "."
+content_directory_name = "docs"
+
+[tool.pydoc-markdown.renderer.mkdocs_config]
+site_name = "Sam"
+theme = "material"
+
+[[tool.pydoc-markdown.renderer.pages]]
+title = "Usage"
+name = "index"
+source = "README.md"
+
+[[tool.pydoc-markdown.renderer.pages]]
+title = "Configuration"
+name = "config"
+contents = [
+  "sam.config.*",
+  "sam.contrib.algolia.config.*",
+  "sam.contrib.brave.config.*",
+  "sam.contrib.github.config.*",
+]
 
 [tool.sam.tools.send_email]
 path = "sam.tools:send_email"
