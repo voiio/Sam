@@ -36,6 +36,10 @@
       "description": "The model to use for text-to-speech. Defaults to 'tts-1-hd'.",
       "required": false
     },
+    "STT_PROMPT": {
+      "description": "Specific words or acronyms for speech-to-text.",
+      "required": false
+    },
     "MAX_PROMPT_TOKENS": {
       "description": "The maximum number of tokens to use in a prompt.",
       "required": false
