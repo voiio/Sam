@@ -42,7 +42,7 @@ and soon spend half the day in meetings and the other half in the kitchen.
 3. You need to create a OpenAI Assistant [here](https://platform.openai.com/assistants) and copy the assistant ID.
 4. With those tokens at the ready, just hit the button below and follow the instructions.
 
-[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
+[![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy?template=https://github.com/voiio/Sam)
 
 ### Create a Slack App
 

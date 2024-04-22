@@ -124,6 +124,12 @@ type = "mkdocs"
 output_directory = "."
 content_directory_name = "docs"
 
+[tool.pydoc-markdown.hooks]
+pre-render = [
+  "cp screenshot.png docs",
+  "cp slack-manifest.yml docs",
+]
+
 [tool.pydoc-markdown.renderer.mkdocs_config]
 site_name = "Sam"
 theme = "material"
