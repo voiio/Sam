@@ -2,7 +2,6 @@ from sam.utils import AssistantConfig
 
 
 class TestAssistantConfig:
-
     def test_system_prompt(self):
         assert (
             AssistantConfig(

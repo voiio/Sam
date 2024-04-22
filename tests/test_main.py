@@ -7,7 +7,6 @@ from sam.__main__ import cli
 
 
 class TestRun:
-
     def test_run(self):
         runner = CliRunner()
         result = runner.invoke(cli, ["run"])
@@ -16,7 +15,6 @@ class TestRun:
 
 
 class TestAssistants:
-
     def test_list(self, monkeypatch):
         monkeypatch.chdir("tests/fixtures")
         runner = CliRunner()

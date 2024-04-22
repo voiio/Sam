@@ -1,3 +1,9 @@
+"""
+The configuration for your bot.
+
+Config values are loaded from environment variables, and have defaults if not set.
+"""
+
 from __future__ import annotations
 
 import os
