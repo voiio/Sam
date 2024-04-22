@@ -1,10 +1,10 @@
 import json
+import logging
 import smtplib
 from unittest import mock
 
 import pytest
 import requests
-from bs4 import ParserRejectedMarkup
 from slack_sdk.errors import SlackClientError
 
 import sam.contrib.algolia.tools
@@ -12,6 +12,7 @@ import sam.contrib.brave.tools
 import sam.slack
 from sam import tools
 from sam.contrib import algolia
+from sam.contrib.brave import BraveSearchAPIError
 from sam.contrib.github.tools import create_github_issue
 
 
@@ -55,6 +56,31 @@ def test_web_search__with_coordinates():
         sam.contrib.brave.tools.search("ferien")
         == '{"Ferien Deutschland": "https://www.schulferien.org/deutschland/ferien/"}'
     )
+
+
+def test_web_search__brave_error(monkeypatch, caplog):
+    client = mock.MagicMock()
+    client.__enter__().search = mock.Mock(side_effect=BraveSearchAPIError())
+    monkeypatch.setattr("sam.contrib.brave.tools.brave.get_client", lambda: client)
+    with caplog.at_level(logging.WARN):
+        output = sam.contrib.brave.tools.search("ferien")
+    assert client.__enter__().search.called
+    assert "Failed to search the web for query: ferien" in caplog.text
+    assert output == "search failed"
+
+
+def test_web_search__key_error(monkeypatch, caplog):
+    client = mock.MagicMock()
+    client.__enter__().search = mock.Mock(return_value={})
+    monkeypatch.setattr("sam.contrib.brave.tools.brave.get_client", lambda: client)
+    with caplog.at_level(logging.ERROR):
+        output = sam.contrib.brave.tools.search("ferien")
+    assert client.__enter__().search.called
+    assert (
+        "The response from the web search API is missing the expected key"
+        in caplog.text
+    )
+    assert output == "search failed, do not retry"
 
 
 def test_fetch_website():

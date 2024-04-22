@@ -28,8 +28,16 @@ def search(query: str, _context=None) -> str:
         try:
             results = api.search(query)["web"]
         except brave.BraveSearchAPIError:
-            logger.exception("Failed to search the web for query: %s", query)
+            logger.warning(
+                "Failed to search the web for query: %s", query, exc_info=True
+            )
             return "search failed"
+        except KeyError:
+            logger.exception(
+                "The response from the web search API is missing the expected key %r",
+                "web",
+            )
+            return "search failed, do not retry"
         else:
             if not results["results"]:
                 logger.warning("No results found for query: %s", query)
