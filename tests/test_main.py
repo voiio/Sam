@@ -1,8 +1,6 @@
-import os
 from unittest import mock
 
 from click.testing import CliRunner
-
 from sam.__main__ import cli
 
 

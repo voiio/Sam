@@ -5,8 +5,6 @@ from unittest import mock
 
 import pytest
 import requests
-from slack_sdk.errors import SlackClientError
-
 import sam.contrib.algolia.tools
 import sam.contrib.brave.tools
 import sam.slack
@@ -14,6 +12,7 @@ from sam import tools
 from sam.contrib import algolia
 from sam.contrib.brave import BraveSearchAPIError
 from sam.contrib.github.tools import create_github_issue
+from slack_sdk.errors import SlackClientError
 
 
 @pytest.fixture

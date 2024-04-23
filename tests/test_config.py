@@ -10,5 +10,5 @@ class TestAssistantConfig:
                 project="test",
                 instructions=["tests/fixtures/harry.md", "tests/fixtures/security.md"],
             ).system_prompt
-            == "You are a wizard, Harry.\n\nYou mustn't tell lies."
+            == "You are a wizard, Harry.\n\nYou mustn't tell lies.\n"
         )

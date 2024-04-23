@@ -3,9 +3,9 @@ from __future__ import annotations
 import enum
 
 import pytest
+from sam import utils
 
 import tests.test_tools
-from sam import utils
 
 
 @pytest.mark.asyncio
@@ -18,7 +18,7 @@ BloodTypes = enum.StrEnum("BloodTypes", {"A": "A", "B": "B"})
 
 def test_func_to_tool():
     def fn(
-        a: int, b: str, blood_types: "tests.test_utils.BloodTypes", _context=None
+        a: int, b: str, blood_types: tests.test_utils.BloodTypes, _context=None
     ) -> str:
         """Function description.
 

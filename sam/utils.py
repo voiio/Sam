@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import enum
-import functools
 import importlib
 import inspect
 import logging
@@ -36,8 +35,7 @@ type_map = {
 def func_to_tool(
     fn_name: str, fn: callable, additional_instructions: str = None
 ) -> dict:
-    """
-    Convert a function to an OpenAI tool definition based on signature and docstring.
+    """Convert a function to an OpenAI tool definition based on signature and docstring.
 
     The docstring should be formatted using the Google Napolean style.
     """
@@ -94,7 +92,7 @@ def params_to_props(fn, params, doc_data):
 
 async def backoff(retries: int, max_jitter: int = 10):
     """Exponential backoff timer with a random jitter."""
-    await asyncio.sleep(2**retries + random.random() * max_jitter)  # nosec
+    await asyncio.sleep(2**retries + random.random() * max_jitter)  # noqa: S311
 
 
 @dataclass
@@ -106,7 +104,7 @@ class AssistantConfig:
 
     @cached_property
     def system_prompt(self):
-        return "\n\n".join(
+        return "\n".join(
             Path(instruction).read_text() for instruction in self.instructions
         )
 

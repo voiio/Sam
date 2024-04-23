@@ -1,5 +1,4 @@
-"""
-The configuration for your bot.
+"""The configuration for your bot.
 
 Config values are loaded from environment variables, and have defaults if not set.
 """
@@ -9,8 +8,8 @@ from __future__ import annotations
 import os
 import re
 import tomllib
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 from zoneinfo import ZoneInfo
 
 from sam.utils import AssistantConfig, Tool

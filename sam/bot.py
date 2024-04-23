@@ -35,8 +35,7 @@ class IncompleteRunError(RunError):
 
 
 async def complete_run(run_id: str, thread_id: str, *, retry: int = 0, **context):
-    """
-    Wait for the run to complete.
+    """Wait for the run to complete.
 
     Run and submit tool outputs if required.
 
@@ -68,8 +67,7 @@ async def complete_run(run_id: str, thread_id: str, *, retry: int = 0, **context
 
 
 async def call_tools(run: openai.types.beta.threads.Run, **context) -> None:
-    """
-    Call the tools required by the run.
+    """Call the tools required by the run.
 
     Raises:
         OSError: If a tool is not found.
@@ -174,8 +172,7 @@ async def execute_run(
 
 
 async def fetch_latest_assistant_message(thread_id: str) -> str:
-    """
-    Fetch the latest assistant message from the thread.
+    """Fetch the latest assistant message from the thread.
 
     Raises:
         ValueError: If no assistant message is found.
@@ -280,8 +277,7 @@ async def stt(audio: bytes) -> str:
 
 
 async def get_thread_id(slack_id) -> str:
-    """
-    Get the thread from the user_id or channel.
+    """Get the thread from the user_id or channel.
 
     Args:
         slack_id: The user or channel id.

@@ -3,7 +3,7 @@ from __future__ import annotations
 import functools
 import json
 import logging
-import random  # nosec
+import random
 import re
 import urllib.request
 from datetime import datetime
@@ -11,14 +11,13 @@ from typing import Any
 
 import redis.asyncio as redis
 from slack_bolt.async_app import AsyncSay
-from slack_sdk import WebClient, errors
+from slack_sdk import errors
 from slack_sdk.web.async_client import AsyncWebClient
 from slack_sdk.web.client import WebClient
 
 import sam.bot
 
-from . import bot, config, utils
-from .utils import logger
+from . import bot, config
 
 logger = logging.getLogger(__name__)
 
@@ -68,11 +67,11 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
     # We may only add messages to a thread while the assistant is not running
     files = []
     for file in event.get("files", []):
-        req = urllib.request.Request(
+        req = urllib.request.Request(  # noqa: S310
             file["url_private"],
             headers={"Authorization": f"Bearer {config.SLACK_BOT_TOKEN}"},
         )
-        with urllib.request.urlopen(req) as response:  # nosec
+        with urllib.request.urlopen(req) as response:  # noqa: S310
             files.append((file["name"], response.read()))
 
     async with (
@@ -89,7 +88,7 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
     if (
         channel_type == "im"
         or event.get("parent_user_id") == bot_id
-        or random.random() < config.RANDOM_RUN_RATIO  # nosec
+        or random.random() < config.RANDOM_RUN_RATIO  # noqa: S311
     ):
         await send_response(
             event, say, file_search=has_attachments, voice_response=has_audio
@@ -146,7 +145,7 @@ async def send_response(
         logger.info(f"User={user_id} starting run for Thread={thread_id}")
         await say.client.reactions_add(
             channel=channel_id,
-            name=random.choice(ACKNOWLEDGMENT_SMILEYS),  # nosec
+            name=random.choice(ACKNOWLEDGMENT_SMILEYS),  # noqa: S311
             timestamp=timestamp,
         )
         text_response = await bot.execute_run(
@@ -191,8 +190,7 @@ def get_app():  # pragma: no cover
 
 
 def fetch_coworker_contacts(_context=None) -> str:
-    """
-    Fetch profile data about your coworkers from Slack.
+    """Fetch profile data about your coworkers from Slack.
 
     The profiles include:
     - first & last name
