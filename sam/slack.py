@@ -11,13 +11,13 @@ from typing import Any
 
 import redis.asyncio as redis
 from slack_bolt.async_app import AsyncSay
-from slack_sdk import WebClient, errors
+from slack_sdk import errors
 from slack_sdk.web.async_client import AsyncWebClient
 from slack_sdk.web.client import WebClient
 
 import sam.bot
 
-from . import bot, config, utils
+from . import bot, config
 from .utils import logger
 
 logger = logging.getLogger(__name__)
@@ -59,6 +59,9 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
     if event.get("subtype") == "message_deleted":
         logger.debug("Ignoring message_deleted event %s", event)
         return  # https://api.slack.com/events/message#hidden_subtypes
+    if event.get("subtype") == "message_changed":
+        logger.debug("Ignoring message_changed event %s", event)
+        return
     bot_id = await get_bot_user_id()
     channel_id = event["channel"]
     channel_type = event["channel_type"]
