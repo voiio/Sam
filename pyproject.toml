@@ -63,10 +63,9 @@ test = [
   "pytest-env",
 ]
 lint = [
-  "bandit==1.7.8",
   "black==24.4.0",
-  "isort==5.13.2",
-  "pydocstyle[toml]==6.3.0",
+  "pre-commit==3.7.0",
+  "ruff==0.4.1",
 ]
 docs = [
   "pydoc-markdown",
@@ -103,19 +102,32 @@ source = ["sam"]
 [tool.coverage.report]
 show_missing = true
 
-[tool.isort]
-atomic = true
-line_length = 88
-multi_line_output = 3
-force_grid_wrap = 0
-known_first_party = "sam, tests"
-include_trailing_comma = true
-use_parentheses = true
-default_section = "THIRDPARTY"
-combine_as_imports = true
+[tool.ruff]
+src = ["sam", "tests"]
 
-[tool.pydocstyle]
-add_ignore = "D1"
+[tool.ruff.lint]
+select = [
+    "E", # pycodestyle errors
+    "W", # pycodestyle warnings
+    "F", # pyflakes
+    "I", # isort
+    "S", # flake8-bandit
+    "D", # pydocstyle
+    "UP", # pyupgrade
+    "B", # flake8-bugbear
+    "C", # flake8-comprehensions
+]
+
+ignore = ["B904", "D1", "E501", "S101"]
+
+[tool.ruff.lint.isort]
+combine-as-imports = true
+split-on-trailing-comma = true
+section-order = ["future", "standard-library", "third-party", "first-party", "local-folder"]
+force-wrap-aliases = true
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
 
 [[tool.pydoc-markdown.loaders]]
 type = "python"

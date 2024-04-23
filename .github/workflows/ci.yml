@@ -13,10 +13,8 @@ jobs:
     strategy:
       matrix:
         lint-command:
-          - bandit -r . -x ./tests
           - black --check --diff .
-          - isort --check-only --diff .
-          - pydocstyle .
+          - ruff check --output-format=github .
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
