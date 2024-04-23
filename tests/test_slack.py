@@ -79,7 +79,7 @@ async def test_handle_message__subtype_deleted(caplog):
     }
     with caplog.at_level(logging.DEBUG):
         await slack.handle_message(event, None)
-    assert "Ignoring message_deleted event" in caplog.text
+    assert "Ignoring `message_deleted` event" in caplog.text
 
 
 @pytest.mark.asyncio
@@ -100,7 +100,7 @@ async def test_handle_message__subtype_changed(caplog):
     }
     with caplog.at_level(logging.DEBUG):
         await slack.handle_message(event, None)
-    assert "Ignoring message_changed event" in caplog.text
+    assert "Ignoring `message_changed` event" in caplog.text
 
 
 def test_get_user_profile(monkeypatch):

@@ -56,11 +56,8 @@ async def get_bot_user_id():
 async def handle_message(event: {str, Any}, say: AsyncSay):
     """Handle a message event from Slack."""
     logger.debug(f"handle_message={json.dumps(event)}")
-    if event.get("subtype") == "message_deleted":
-        logger.debug("Ignoring message_deleted event %s", event)
-        return  # https://api.slack.com/events/message#hidden_subtypes
-    if event.get("subtype") == "message_changed":
-        logger.debug("Ignoring message_changed event %s", event)
+    if event.get("subtype") in ["message_changed", "message_deleted"]:
+        logger.debug(f"Ignoring `{event['subtype']}` event {event}")
         return
     bot_id = await get_bot_user_id()
     channel_id = event["channel"]
