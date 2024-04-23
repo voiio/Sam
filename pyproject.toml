@@ -133,4 +133,14 @@ additional_instructions = "You MUST ALWAYS write the issue in English."
 
 [tool.sam.tools.platform_search]
 path = "sam.contrib.algolia.tools:search"
-additional_instructions = "The voiio platform should be searched before searching the web."
+additional_instructions = """
+The voiio platform should be searched before searching the web.
+The query must be translated into a German language.
+[Date input/output format]
+Preferred: January 1, 2024
+Compact: 01-Jan-2024
+API: "1704110400"
+[/quote]
+If the user mentions absolute or relative dates, they should be converted to absolute dates in Unix epoch format (without milliseconds).
+For example, if the date is January 1, 2024, the Unix epoch format should be 1704110400.
+"""
