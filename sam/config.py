@@ -23,6 +23,7 @@ RANDOM_RUN_RATIO: float = float(os.getenv("RANDOM_RUN_RATIO", "0"))
 TIMEZONE: ZoneInfo = ZoneInfo(os.getenv("TIMEZONE", "UTC"))
 #: The Brave Search API key for web search.
 
+
 # OpenAI
 #: The OpenAI API key.
 OPENAI_API_KEY: str = os.getenv("OPENAI_API_KEY")
