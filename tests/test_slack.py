@@ -78,7 +78,28 @@ async def test_handle_message__subtype_deleted(caplog):
     }
     with caplog.at_level(logging.DEBUG):
         await slack.handle_message(event, None)
-    assert "Ignoring message_deleted event" in caplog.text
+    assert "Ignoring `message_deleted` event" in caplog.text
+
+
+@pytest.mark.asyncio
+async def test_handle_message__subtype_changed(caplog):
+    event = {
+        "type": "message",
+        "subtype": "message_changed",
+        "hidden": True,
+        "channel": "C123ABC456",
+        "ts": "1358878755.000001",
+        "message": {
+            "type": "message",
+            "user": "U123ABC456",
+            "text": "Hello, world!",
+            "ts": "1355517523.000005",
+            "edited": {"user": "U123ABC456", "ts": "1358878755.000001"},
+        },
+    }
+    with caplog.at_level(logging.DEBUG):
+        await slack.handle_message(event, None)
+    assert "Ignoring `message_changed` event" in caplog.text
 
 
 def test_get_user_profile(monkeypatch):
