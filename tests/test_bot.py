@@ -213,6 +213,38 @@ async def test_execute_run(monkeypatch, client):
 
 
 @pytest.mark.asyncio
+async def test_execute_run_with_files(monkeypatch, client):
+    client.beta.threads.runs.retrieve.return_value = namedtuple(
+        "Run", ["id", "status"]
+    )(id="run-1", status="queued")
+    client.beta.threads.messages.list.return_value = namedtuple("Response", ["data"])(
+        data=[
+            Message(
+                id="msg-1",
+                content=[
+                    TextContentBlock(
+                        type="text", text=Text(value="Hello", annotations=[])
+                    )
+                ],
+                status="completed",
+                role="assistant",
+                created_at=123,
+                files=[],
+                file_ids=[],
+                object="thread.message",
+                thread_id="thread-4",
+            ),
+        ]
+    )
+    complete_run = mock.AsyncMock()
+    monkeypatch.setattr(bot, "complete_run", complete_run)
+    await bot.execute_run(
+        thread_id="thread-1", assistant_id="assistant-1", file_search=True
+    )
+    assert complete_run.called
+
+
+@pytest.mark.asyncio
 async def test_execute_run__no_completed(monkeypatch, client):
     client.beta.threads.runs.retrieve.return_value = namedtuple(
         "Run", ["id", "status"]
