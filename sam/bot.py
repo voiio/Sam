@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 import json
 import logging
 from pathlib import Path
@@ -297,6 +298,13 @@ async def get_thread_id(slack_id) -> str:
             thread = await openai.AsyncOpenAI().beta.threads.create()
             thread_id = thread.id
 
-        await redis_client.set(slack_id, thread_id)
+        expire_at_timestamp: datetime | None = None
+
+        if config.GROUNDHOG_DAY_MODE:
+            # local today at midnight
+            expire_at_timestamp = datetime.datetime.combine(
+                datetime.datetime.today(), datetime.time.max, tzinfo=config.TIMEZONE
+            )
+        await redis_client.set(slack_id, thread_id, exat=expire_at_timestamp)
 
     return thread_id

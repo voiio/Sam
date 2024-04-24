@@ -15,6 +15,8 @@ from zoneinfo import ZoneInfo
 
 from sam.utils import AssistantConfig, Tool
 
+_TRUTHY = {"1", "true", "yes", "on"}
+
 # General
 #: The URL of the Redis database server.
 REDIS_URL: str = os.getenv("REDIS_URL", "redis:///")
@@ -45,6 +47,10 @@ MAX_COMPLETION_TOKENS: int | None = (
     if "MAX_COMPLETION_TOKENS" in os.environ
     else None
 )
+
+#: The bot will start a fresh thread each day, forgetting the previous day's context.
+GROUNDHOG_DAY_MODE: bool = os.getenv("GROUNDHOG_DAY_MODE", "false").lower() in _TRUTHY
+
 
 # Slack
 #: The Slack bot token, prefixed with `xoxb-`.
