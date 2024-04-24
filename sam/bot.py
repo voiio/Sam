@@ -152,7 +152,7 @@ async def execute_run(
         # See also: https://platform.openai.com/docs/assistants/how-it-works/max-completion-and-max-prompt-tokens
         max_prompt_tokens=(
             min(20000, config.MAX_PROMPT_TOKENS)
-            if file_search
+            if config.MAX_PROMPT_TOKENS and file_search
             else config.MAX_PROMPT_TOKENS
         ),
         max_completion_tokens=config.MAX_COMPLETION_TOKENS,
