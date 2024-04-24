@@ -218,7 +218,7 @@ async def add_message(
     files: [(str, bytes)] = None,
 ) -> tuple[bool, bool]:
     """Add a message to the thread."""
-    logger.info(f"Adding message to thread={thread_id}")
+    logger.info("Adding message to thread %s", thread_id)
     client: openai.AsyncOpenAI = openai.AsyncOpenAI()
     file_ids = []
     voice_prompt = False
