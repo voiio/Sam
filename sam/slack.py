@@ -48,15 +48,14 @@ async def get_bot_user_id():
         logger.debug("Fetching the bot's user id")
         response = await client.auth_test()
         _USER_HANDLE = response["user_id"]
-        logger.debug(f"Bot's user id is {_USER_HANDLE}")
+        logger.debug("Bot's user id is %s", _USER_HANDLE)
     return _USER_HANDLE
 
 
 async def handle_message(event: {str, Any}, say: AsyncSay):
     """Handle a message event from Slack."""
-    logger.debug(f"handle_message={json.dumps(event)}")
     if event.get("subtype") in ["message_changed", "message_deleted"]:
-        logger.debug(f"Ignoring `{event['subtype']}` event {event}")
+        logger.debug("Ignoring `%s` event", event["subtype"])
         return
     bot_id = await get_bot_user_id()
     channel_id = event["channel"]
@@ -128,7 +127,7 @@ async def send_response(
     voice_response: bool = False,
 ):
     """Send a response to a message event from Slack."""
-    logger.debug(f"process_run={json.dumps(event)}")
+    logger.debug("process_run=%s", json.dumps(event))
     channel_id = event["channel"]
     user_id = event["user"]
     try:
@@ -142,7 +141,7 @@ async def send_response(
         redis.from_url(config.REDIS_URL) as redis_client,
         redis_client.lock(thread_id, timeout=10 * 60),
     ):  # 10 minutes
-        logger.info(f"User={user_id} starting run for Thread={thread_id}")
+        logger.info("User=%s starting run for Thread=%s", user_id, thread_id)
         await say.client.reactions_add(
             channel=channel_id,
             name=random.choice(ACKNOWLEDGMENT_SMILEYS),  # noqa: S311
@@ -163,7 +162,9 @@ async def send_response(
             thread_ts=event.get("thread_ts", None),
         )
         logger.info(
-            f"Sam responded to the User={user_id} in Channel={channel_id} via Text"
+            "Sam responded to the User=%s in Channel=%s via Text",
+            user_id,
+            channel_id,
         )
 
         if voice_response:
@@ -176,7 +177,9 @@ async def send_response(
                 ts=msg["ts"],
             )
             logger.info(
-                f"Sam responded to the User={user_id} in Channel={channel_id} via Voice"
+                "Sam responded to the User=%s in Channel=%s via Voice",
+                user_id,
+                channel_id,
             )
 
 
