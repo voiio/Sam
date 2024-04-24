@@ -15,8 +15,7 @@ from sam.utils import logger
 
 
 def send_email(to: str, subject: str, body: str, _context=None):
-    """
-    Send an email the given recipients. The user is always cc'd on the email.
+    """Send an email the given recipients. The user is always cc'd on the email.
 
     Args:
         to: Comma separated list of email addresses.
@@ -55,8 +54,7 @@ def send_email(to: str, subject: str, body: str, _context=None):
 
 
 def fetch_website(url: str, _context=None) -> str:
-    """
-    Fetch the website for the given URL and return the content as Markdown.
+    """Fetch the website for the given URL and return the content as Markdown.
 
     You MUST NOT use this function twice if there was an error fetching the website.
 

@@ -9,8 +9,7 @@ from . import config
 
 
 def search(query: str, _context=None) -> str:
-    """
-    Search the internet for information that matches the given query.
+    """Search the internet for information that matches the given query.
 
     The search is location aware and will return results based on the user's location.
 

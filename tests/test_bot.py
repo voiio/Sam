@@ -10,7 +10,6 @@ from openai.types.beta.threads import (
     Text,
     TextContentBlock,
 )
-
 from sam import bot, config
 
 

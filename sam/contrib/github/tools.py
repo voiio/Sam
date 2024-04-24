@@ -8,8 +8,7 @@ logger = logging.getLogger(__name__)
 def create_github_issue(
     title: str, body: str, repo: config.GITHUB_REPOS, _context=None
 ) -> str:
-    """
-    Create an issue on GitHub with the given title and body.
+    """Create an issue on GitHub with the given title and body.
 
     A good issues usually includes a user story for a feature,
     or a step by step guide how to reproduce a bug.

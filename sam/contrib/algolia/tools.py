@@ -8,8 +8,7 @@ from sam.utils import logger
 
 
 def search(query: str, _context=None) -> str:
-    """
-    Search the platform for information that matches the given query.
+    """Search the platform for information that matches the given query.
 
     Args:
         query: The query to search for.

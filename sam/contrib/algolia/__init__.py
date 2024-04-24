@@ -19,9 +19,11 @@ class AbstractAlgoliaSearch(abc.ABC):  # pragma: no cover
     def search(self, query):
         return NotImplemented
 
+    @abc.abstractmethod
     def __enter__(self):
         return self
 
+    @abc.abstractmethod
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
 
@@ -33,6 +35,12 @@ class AlgoliaSearch(AbstractAlgoliaSearch):  # pragma: no cover
         client = SearchClient.create(application_id, api_key)
         self.index = client.init_index(index)
         self.params = {}
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
 
     def search(self, query):
         try:
@@ -58,6 +66,12 @@ class AlgoliaSearchStub(AbstractAlgoliaSearch):
             },
         ]
         self.params = {}
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        pass
 
     def search(self, query):
         return {"hits": self._objects, "nbPages": 1}
