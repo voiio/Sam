@@ -3,6 +3,7 @@ import logging
 import smtplib
 from unittest import mock
 
+import psycopg
 import pytest
 import requests
 import sam.contrib.algolia.tools
@@ -155,3 +156,39 @@ def test_platform_search_no_results():
         "sam.contrib.algolia.AlgoliaSearchStub.search", return_value={"hits": []}
     ):
         assert sam.contrib.algolia.tools.search("something") == "no results found"
+
+
+def test_posqgres_fetch_all(monkeypatch):
+    conn = mock.MagicMock()
+    monkeypatch.setattr(
+        sam.contrib.postgres.tools.psycopg,
+        "connect",
+        lambda *args, **kwargs: conn,
+    )
+    cursor = mock.MagicMock()
+    conn.__enter__().cursor = lambda: cursor
+
+    cursor.__enter__().fetchall.return_value = [("data",), ("data2",)]
+
+    assert sam.contrib.postgres.tools.fetch_all("asdf") == '["data", "data2"]'
+    assert cursor.__enter__().execute.called
+
+
+def test_posqgres_fetch_all__programming_error(monkeypatch):
+    conn = mock.MagicMock()
+    monkeypatch.setattr(
+        sam.contrib.postgres.tools.psycopg,
+        "connect",
+        lambda *args, **kwargs: conn,
+    )
+    cursor = mock.MagicMock()
+    conn.__enter__().cursor = lambda: cursor
+
+    cursor.__enter__().execute.side_effect = psycopg.ProgrammingError(
+        "This is not the table you are looking for"
+    )
+
+    assert (
+        sam.contrib.postgres.tools.fetch_all("asdf")
+        == "This is not the table you are looking for"
+    )
