@@ -206,4 +206,4 @@ additional_instructions = "The voiio platform should be searched before searchin
 
 [tool.sam.tools.fetch_data_warehouse_sql]
 path = "sam.contrib.postgres.tools:fetch_all"
-additional_instructions = "You MUST ALWAYS LIMIT the number of rows fetched. You MUST ALWAYS read SQL database schema before writing a SQL query."
+additional_instructions = "You MUST ALWAYS LIMIT the number of rows fetched. You must only use the public schema."

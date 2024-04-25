@@ -11,6 +11,8 @@ logger = logging.getLogger(__name__)
 def fetch_all(query: str, _context=None) -> str:
     """Fetch data from a PostgreSQL database using a SELECT query and return it as JSON.
 
+    Query should be a SELECT statement and NEVER end with a semicolon.
+
     Args:
         query: SQL query to execute. It should be a SELECT statement.
     """
