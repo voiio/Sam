@@ -61,6 +61,7 @@ test = [
   "pytest-asyncio",
   "pytest-cov",
   "pytest-env",
+  "psycopg",
 ]
 lint = [
   "black==24.4.0",
@@ -71,6 +72,10 @@ docs = [
   "pydoc-markdown",
   "mkdocs-material",
   "pymdown-extensions",
+]
+
+postgres = [
+  "psycopg",
 ]
 
 [project.urls]
@@ -198,3 +203,7 @@ additional_instructions = "You MUST ALWAYS write the issue in English."
 [tool.sam.tools.platform_search]
 path = "sam.contrib.algolia.tools:search"
 additional_instructions = "The voiio platform should be searched before searching the web."
+
+[tool.sam.tools.fetch_data_warehouse_sql]
+path = "sam.contrib.postgres.tools:fetch_all"
+additional_instructions = "You MUST ALWAYS LIMIT the number of rows fetched. You MUST ALWAYS read SQL database schema before writing a SQL query."
