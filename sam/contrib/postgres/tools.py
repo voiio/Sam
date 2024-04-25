@@ -21,6 +21,7 @@ def fetch_all(query: str, _context=None) -> str:
             password=config.PASSWORD,
             host=config.HOSTNAME,
             port=config.PORT,
+            options="-c default_transaction_read_only=on",
         ) as conn,
         conn.cursor() as cur,
     ):

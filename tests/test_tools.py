@@ -158,7 +158,7 @@ def test_platform_search_no_results():
         assert sam.contrib.algolia.tools.search("something") == "no results found"
 
 
-def test_posqgres_fetch_all(monkeypatch):
+def test_postgres_fetch_all(monkeypatch):
     conn = mock.MagicMock()
     monkeypatch.setattr(
         sam.contrib.postgres.tools.psycopg,
@@ -174,7 +174,7 @@ def test_posqgres_fetch_all(monkeypatch):
     assert cursor.__enter__().execute.called
 
 
-def test_posqgres_fetch_all__programming_error(monkeypatch):
+def test_postgres_fetch_all__programming_error(monkeypatch):
     conn = mock.MagicMock()
     monkeypatch.setattr(
         sam.contrib.postgres.tools.psycopg,
