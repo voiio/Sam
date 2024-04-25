@@ -6,6 +6,7 @@ import logging
 from pathlib import Path
 
 import openai
+from openai._types import FileTypes
 from redis import asyncio as redis
 
 from . import config, utils
@@ -226,15 +227,7 @@ async def add_message(
     for file_name, file_content in files or []:
         if Path(file_name).suffix.lstrip(".") in AUDIO_FORMATS:
             logger.debug("Transcribing audio file %s", file_name)
-            content += (
-                "\n"
-                + (
-                    await client.audio.transcriptions.create(
-                        model="whisper-1",
-                        file=(file_name, file_content),
-                    )
-                ).text
-            )
+            content += "\n" + await stt((file_name, file_content))
             voice_prompt = True
         else:
             logger.debug("Uploading file %s", file_name)
@@ -266,7 +259,7 @@ async def tts(text: str) -> bytes:
     return response.read()
 
 
-async def stt(audio: bytes) -> str:
+async def stt(audio: FileTypes) -> str:
     """Convert speech to text using the OpenAI API."""
     client: openai.AsyncOpenAI = openai.AsyncOpenAI()
     response = await client.audio.transcriptions.create(
