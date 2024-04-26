@@ -4,6 +4,7 @@ import re
 import smtplib
 import ssl
 import urllib.parse
+from datetime import datetime
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -12,6 +13,15 @@ from markdownify import markdownify as md
 
 from sam import config
 from sam.utils import logger
+
+
+def fetch_current_timestamp(_context=None) -> str:
+    """Fetch the current timestamp in UNIX format.
+
+    Returns:
+        The current timestamp in UNIX format.
+    """
+    return str(datetime.now(config.TIMEZONE).timestamp())
 
 
 def send_email(to: str, subject: str, body: str, _context=None):

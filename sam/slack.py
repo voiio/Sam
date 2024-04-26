@@ -17,7 +17,7 @@ from slack_sdk.web.client import WebClient
 
 import sam.bot
 
-from . import bot, config
+from . import config
 
 logger = logging.getLogger(__name__)
 
@@ -77,7 +77,7 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
         redis.from_url(config.REDIS_URL) as redis_client,
         redis_client.lock(thread_id, timeout=10 * 60, thread_local=False),
     ):  # 10 minutes
-        has_attachments, has_audio = await bot.add_message(
+        has_attachments, has_audio = await sam.bot.add_message(
             thread_id=thread_id,
             content=text,
             files=files,
@@ -113,7 +113,7 @@ def get_user_specific_instructions(user_id: str) -> str:
         f"You MUST ALWAYS address the user as <@{user_id}>.",
         f"You may refer to the user as {name}.",
         f"The user's email is {email}.",
-        f"The time is {local_time.isoformat()}.",
+        f"The current time is {local_time.isoformat()}.",
     ]
     if pronouns:
         instructions.append(f"The user's pronouns are {pronouns}.")
@@ -147,11 +147,12 @@ async def send_response(
             name=random.choice(ACKNOWLEDGMENT_SMILEYS),  # noqa: S311
             timestamp=timestamp,
         )
-        text_response = await bot.execute_run(
+        text_response = await sam.bot.execute_run(
             thread_id=thread_id,
             assistant_id=config.OPENAI_ASSISTANT_ID,
             additional_instructions=get_user_specific_instructions(user_id),
             file_search=file_search,
+            channel_id=channel_id,
             **get_user_profile(user_id),
         )
 
@@ -171,7 +172,7 @@ async def send_response(
             await say.client.files_upload_v2(
                 filename="response.mp3",
                 title="Voice Response",
-                content=await bot.tts(text_response),
+                content=await sam.bot.tts(text_response),
                 channel=say.channel,
                 thread_ts=event.get("thread_ts", None),
                 ts=msg["ts"],
@@ -229,6 +230,43 @@ def fetch_coworker_contacts(_context=None) -> str:
                     "pronouns": profile.get("pronouns"),
                 }
         return json.dumps(profiles)
+
+
+def fetch_slack_history(latest_ts: str, oldest_ts: str, _context=None) -> str:
+    """Fetch messages from a Slack channel.
+
+    Args:
+        latest_ts: The latest unix timestamp of the messages to fetch.
+        oldest_ts: The oldest unix timestamp of the messages to fetch.
+    """
+    client = WebClient(token=config.SLACK_BOT_TOKEN)
+
+    if channel_id := _context.get("channel_id"):
+        logger.info("Fetching messages from Channel=%s for timestamps=%s-%s", channel_id, latest_ts, oldest_ts)
+    else:
+        logger.error("Channel ID not provided")
+        return "channel id not provided"
+
+    try:
+        response = client.conversations_history(
+            channel=channel_id,
+            latest=latest_ts,
+            oldest=oldest_ts,
+            include_all_metadata=False,
+        )
+    except errors.SlackClientError:
+        logger.exception("Failed to fetch messages from Channel=%s", channel_id)
+        return "failed to fetch messages"
+    else:
+        logger.debug("Fetched messages from Channel=%s", channel_id)
+        messages = [
+            {
+                "user": message["user"],
+                "text": message["text"],
+            }
+            for message in response["messages"]
+        ]
+        return json.dumps(messages)
 
 
 MD_MRKDWN_PATTERN = [
