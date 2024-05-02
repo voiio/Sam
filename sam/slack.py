@@ -77,11 +77,20 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
         redis.from_url(config.REDIS_URL) as redis_client,
         redis_client.lock(thread_id, timeout=10 * 60, thread_local=False),
     ):  # 10 minutes
-        has_attachments, has_audio = await bot.add_message(
-            thread_id=thread_id,
-            content=text,
-            files=files,
-        )
+        try:
+            has_attachments, has_audio = await bot.add_message(
+                thread_id=thread_id,
+                content=text,
+                files=files,
+            )
+        except OSError as e:
+            # Only relevant for direct messages
+            if channel_type == "im":
+                await say(
+                    channel=channel_id,
+                    text="I'm sorry, I can't process this. %s" % e.strerror,
+                )
+            return
 
     # we need to release the lock before starting a new run
     if (

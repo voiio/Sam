@@ -236,15 +236,22 @@ async def add_message(
                 purpose="assistants",
             )
             file_ids.append(new_file.id)
-    await client.beta.threads.messages.create(
-        thread_id=thread_id,
-        content=content,
-        role=Roles.USER,
-        attachments=[
-            {"file_id": file_id, "tools": [{"type": "file_search"}]}
-            for file_id in file_ids
-        ],
-    )
+
+    try:
+        await client.beta.threads.messages.create(
+            thread_id=thread_id,
+            content=content,
+            role=Roles.USER,
+            attachments=[
+                {"file_id": file_id, "tools": [{"type": "file_search"}]}
+                for file_id in file_ids
+            ],
+        )
+    except openai.BadRequestError as e:
+        error = OSError()
+        error.strerror = e.body["message"]
+        raise error
+
     return bool(file_ids), voice_prompt
 
 
