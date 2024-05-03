@@ -102,6 +102,51 @@ async def test_handle_message__subtype_changed(caplog):
     assert "Ignoring `message_changed` event" in caplog.text
 
 
+@pytest.mark.asyncio
+async def test_handle_message__bad_request(caplog, monkeypatch):
+    event = {
+        "channel": "channel-1",
+        "client_msg_id": "client-msg-1",
+        "channel_type": "im",
+        "user": "user-1",
+        "text": "Hello",
+        "files": [
+            {
+                "url_private": "https://example.com/file.png",
+                "name": "file.png",
+            }
+        ],
+    }
+
+    urlopen = mock.AsyncMock()
+    urlopen.__enter__().read.return_value = b"Hello"
+    side_effect = OSError()
+    side_effect.strerror = "Bad request"
+    add_message = mock.AsyncMock(side_effect=side_effect)
+    monkeypatch.setattr("urllib.request.urlopen", lambda *args, **kwargs: urlopen)
+    monkeypatch.setattr(bot, "add_message", add_message)
+    monkeypatch.setattr(
+        "sam.bot.get_thread_id", mock.AsyncMock(return_value="thread-1")
+    )
+    get_bot_user_id = mock.AsyncMock(return_value="bot-1")
+    monkeypatch.setattr(slack, "get_bot_user_id", get_bot_user_id)
+    send_response = mock.AsyncMock()
+    monkeypatch.setattr(slack, "send_response", send_response)
+    say = mock.AsyncMock()
+
+    with caplog.at_level(logging.ERROR):
+        await slack.handle_message(event, say)
+
+    assert add_message.called
+    assert add_message.call_args == mock.call(
+        thread_id="thread-1", content="Hello", files=[("file.png", b"Hello")]
+    )
+    assert say.call_args == mock.call(
+        channel="channel-1", text="I'm sorry, I can't process this. Bad request"
+    )
+    send_response.assert_not_called()
+
+
 def test_get_user_profile(monkeypatch):
     client = mock.MagicMock()
     client.users_profile_get.return_value = {
