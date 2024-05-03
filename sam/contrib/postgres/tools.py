@@ -31,7 +31,7 @@ def fetch_all(query: str, _context=None) -> str:
             cur.execute(
                 f"select jsonb_build_object('data', jsonb_agg(t)) from ({query}) t"  # noqa: S608
             )
-        except psycopg.ProgrammingError as e:
+        except psycopg.DatabaseError as e:
             logger.exception("Error executing query: %s", query)
             return str(e)
 
