@@ -3,6 +3,7 @@ from collections import namedtuple
 from unittest import mock
 
 import pytest
+from openai import BadRequestError
 from openai.types.beta.threads import (
     ImageFile,
     ImageFileContentBlock,
@@ -74,6 +75,16 @@ async def test_add_message__audio(client):
     assert client.beta.threads.messages.create.call_args == mock.call(
         thread_id="thread-1", content="Hello\nWorld", role="user", attachments=[]
     )
+
+
+@pytest.mark.asyncio
+async def test_add_message__bad_request(client):
+    client.beta.threads.messages.create.side_effect = BadRequestError(
+        response=mock.Mock(), message="Bad request", body={"message": "Bad Request"}
+    )
+    with pytest.raises(OSError) as e:
+        await bot.add_message("thread-1", "", [])
+    assert e.value.strerror == "Bad Request"
 
 
 @pytest.mark.asyncio

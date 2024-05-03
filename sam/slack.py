@@ -88,7 +88,7 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
             if channel_type == "im":
                 await say(
                     channel=channel_id,
-                    text="I'm sorry, I can't process this. %s" % e.strerror,
+                    text=f"I'm sorry, I can't process this. {e.strerror}",
                 )
             return
 
