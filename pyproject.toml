@@ -181,6 +181,10 @@ contents = [
   "sam.contrib.github.config.*",
 ]
 
+[tool.sam.tools.fetch_current_timestamp]
+path = "sam.tools:fetch_current_timestamp"
+additional_instructions = "Use the current time to answer absolute and relative time questions."
+
 [tool.sam.tools.send_email]
 path = "sam.tools:send_email"
 additional_instructions = "You may ask for confirmation before sending an email."
@@ -191,6 +195,10 @@ additional_instructions = "You may fetch multiple websites and browse the sites.
 
 [tool.sam.tools.fetch_coworker_contacts]
 path = "sam.slack:fetch_coworker_contacts"
+
+[tool.sam.tools.fetch_slack_history]
+path = "sam.slack:fetch_slack_history"
+additional_instructions = "When asked to recall the old conversations/chats, fetch current timestamp to summarize messages into key points, including quotes where appropriate."
 
 [tool.sam.tools.web_search]
 path = "sam.contrib.brave.tools:search"
