@@ -133,7 +133,7 @@ section-order = ["future", "standard-library", "third-party", "first-party", "lo
 force-wrap-aliases = true
 
 [tool.ruff.lint.pydocstyle]
-convention = "google"
+convention = "pep257"
 
 [[tool.pydoc-markdown.loaders]]
 type = "python"

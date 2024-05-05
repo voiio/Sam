@@ -20,7 +20,8 @@ def test_func_to_tool():
     def fn(
         a: int, b: str, blood_types: tests.test_utils.BloodTypes, _context=None
     ) -> str:
-        """Function description.
+        """
+        Describe function.
 
         Args:
             a: Description of a.
@@ -37,7 +38,7 @@ def test_func_to_tool():
         "type": "function",
         "function": {
             "name": "my_unique_function",
-            "description": "Function description.",
+            "description": "Describe function.",
             "parameters": {
                 "type": "object",
                 "properties": {
