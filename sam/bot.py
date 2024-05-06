@@ -248,9 +248,7 @@ async def add_message(
             ],
         )
     except openai.BadRequestError as e:
-        error = OSError()
-        error.strerror = e.body["message"]
-        raise error
+        raise OSError("The assistant could not process this message.") from e
 
     return bool(file_ids), voice_prompt
 

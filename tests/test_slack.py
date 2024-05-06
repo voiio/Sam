@@ -120,10 +120,12 @@ async def test_handle_message__bad_request(caplog, monkeypatch):
 
     urlopen = mock.AsyncMock()
     urlopen.__enter__().read.return_value = b"Hello"
-    side_effect = OSError()
-    side_effect.strerror = "Bad request"
-    add_message = mock.AsyncMock(side_effect=side_effect)
     monkeypatch.setattr("urllib.request.urlopen", lambda *args, **kwargs: urlopen)
+    add_message = mock.AsyncMock(return_value=(["file-1"], False))
+    add_message.side_effect = [
+        OSError("The assistant could not process this message."),
+        (["file-1"], False),
+    ]
     monkeypatch.setattr(bot, "add_message", add_message)
     monkeypatch.setattr(
         "sam.bot.get_thread_id", mock.AsyncMock(return_value="thread-1")
@@ -134,17 +136,14 @@ async def test_handle_message__bad_request(caplog, monkeypatch):
     monkeypatch.setattr(slack, "send_response", send_response)
     say = mock.AsyncMock()
 
-    with caplog.at_level(logging.ERROR):
+    with caplog.at_level(logging.WARNING):
         await slack.handle_message(event, say)
 
-    assert add_message.called
-    assert add_message.call_args == mock.call(
-        thread_id="thread-1", content="Hello", files=[("file.png", b"Hello")]
-    )
-    assert say.call_args == mock.call(
-        channel="channel-1", text="I'm sorry, I can't process this. Bad request"
-    )
-    send_response.assert_not_called()
+    assert "Failed to add message to thread_id=thread-1" in caplog.text
+    assert add_message.call_count == 2
+
+    assert "Hello" in add_message.call_args_list[0][1]["content"]
+    assert "Inform the user about" in add_message.call_args_list[1][1]["content"]
 
 
 def test_get_user_profile(monkeypatch):

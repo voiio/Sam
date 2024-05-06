@@ -82,9 +82,8 @@ async def test_add_message__bad_request(client):
     client.beta.threads.messages.create.side_effect = BadRequestError(
         response=mock.Mock(), message="Bad request", body={"message": "Bad Request"}
     )
-    with pytest.raises(OSError) as e:
+    with pytest.raises(OSError):
         await bot.add_message("thread-1", "", [])
-    assert e.value.strerror == "Bad Request"
 
 
 @pytest.mark.asyncio

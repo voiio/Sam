@@ -5,6 +5,7 @@ import json
 import logging
 import random
 import re
+import traceback
 import urllib.request
 from datetime import datetime
 from typing import Any
@@ -83,14 +84,16 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
                 content=text,
                 files=files,
             )
-        except OSError as e:
+        except OSError:
+            logger.warning(
+                "Failed to add message to thread_id=%s", thread_id, exc_info=True
+            )
             # Only relevant for direct messages
-            if channel_type == "im":
-                await say(
-                    channel=channel_id,
-                    text=f"I'm sorry, I can't process this. {e.strerror}",
+            if channel_type == "im" or event.get("parent_user_id") == bot_id:
+                has_attachments, has_audio = await bot.add_message(
+                    thread_id=thread_id,
+                    content=f"Inform the user about: {traceback.format_exc(limit=1)}",
                 )
-            return
 
     # we need to release the lock before starting a new run
     if (
