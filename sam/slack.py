@@ -92,7 +92,7 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
             if channel_type == "im" or event.get("parent_user_id") == bot_id:
                 has_attachments, has_audio = await bot.add_message(
                     thread_id=thread_id,
-                    content=f"Inform the user about: {traceback.format_exc(limit=1)}",
+                    content=f"Briefly inform the user about: {traceback.format_exc(limit=1)} Include links.",
                 )
 
     # we need to release the lock before starting a new run

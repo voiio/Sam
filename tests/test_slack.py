@@ -143,7 +143,9 @@ async def test_handle_message__bad_request(caplog, monkeypatch):
     assert add_message.call_count == 2
 
     assert "Hello" in add_message.call_args_list[0][1]["content"]
-    assert "Inform the user about" in add_message.call_args_list[1][1]["content"]
+    content_2 = add_message.call_args_list[1][1]["content"]
+    assert "Briefly inform the user about" in content_2
+    assert "Include links" in content_2
 
 
 def test_get_user_profile(monkeypatch):
