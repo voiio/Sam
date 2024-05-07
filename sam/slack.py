@@ -5,6 +5,7 @@ import json
 import logging
 import random
 import re
+import traceback
 import urllib.request
 from datetime import datetime
 from typing import Any
@@ -77,11 +78,22 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
         redis.from_url(config.REDIS_URL) as redis_client,
         redis_client.lock(thread_id, timeout=10 * 60, thread_local=False),
     ):  # 10 minutes
-        has_attachments, has_audio = await bot.add_message(
-            thread_id=thread_id,
-            content=text,
-            files=files,
-        )
+        try:
+            has_attachments, has_audio = await bot.add_message(
+                thread_id=thread_id,
+                content=text,
+                files=files,
+            )
+        except OSError:
+            logger.warning(
+                "Failed to add message to thread_id=%s", thread_id, exc_info=True
+            )
+            # Only relevant for direct messages
+            if channel_type == "im" or event.get("parent_user_id") == bot_id:
+                has_attachments, has_audio = await bot.add_message(
+                    thread_id=thread_id,
+                    content=f"Briefly inform the user about: {traceback.format_exc(limit=1)} Include links.",
+                )
 
     # we need to release the lock before starting a new run
     if (
