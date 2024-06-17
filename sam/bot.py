@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import ast
 import datetime
 import json
 import logging
@@ -90,7 +91,9 @@ async def call_tools(run: openai.types.beta.threads.Run, **context) -> None:
                 f"Tool {tool_call.function.name} not found, cancelling run {run.id}"
             ) from e
         try:
-            kwargs = json.loads(tool_call.function.arguments)
+            kwargs = json.loads(
+                json.dumps(ast.literal_eval(tool_call.function.arguments))
+            )
         except json.JSONDecodeError as e:
             await client.beta.threads.runs.cancel(
                 run_id=run.id, thread_id=run.thread_id
