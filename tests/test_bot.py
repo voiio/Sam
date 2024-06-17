@@ -106,15 +106,15 @@ async def test_call_tools__io_error_fn_name(client):
 
 
 @pytest.mark.asyncio
-async def test_call_tools__io_error_fn_kwargs(client):
+async def test_call_tools__type_error_fn_kwargs(client):
     run = mock.MagicMock()
     tool_call = mock.MagicMock()
     tool_call.function.name = "web_search"
     tool_call.function.arguments = "{'notJSON'}"
     run.required_action.submit_tool_outputs.tool_calls = [tool_call]
-    with pytest.raises(OSError) as e:
+    with pytest.raises(TypeError) as e:
         await bot.call_tools(run)
-    assert "Invalid arguments" in str(e.value)
+    assert "Object of type set is not JSON serializable" in str(e.value)
 
 
 @pytest.mark.asyncio
