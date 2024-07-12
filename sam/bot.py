@@ -207,7 +207,7 @@ async def annotate_citations(
 
         if file_citation := getattr(annotation, "file_citation", None):
             cited_file = await client.files.retrieve(file_citation.file_id)
-            citations.append(f"[{index}] {file_citation.quote} — {cited_file.filename}")
+            citations.append(f"[{index}] {cited_file.filename}")
         elif file_path := getattr(annotation, "file_path", None):
             cited_file = await client.files.retrieve(file_path.file_id)
             citations.append(f"[{index}]({cited_file.filename})")

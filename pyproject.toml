@@ -46,7 +46,7 @@ dependencies = [
   "redis",
   "requests",
   "slack-bolt",
-  "openai==1.33.*",
+  "openai>=1.21.0",
   "pyyaml",
   "algoliasearch",
   "sentry-sdk",
