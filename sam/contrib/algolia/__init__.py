@@ -3,7 +3,7 @@
 import abc
 
 import requests
-from algoliasearch.search_client import SearchClient
+from algoliasearch.search.client import SearchClient
 
 from . import config
 
