@@ -155,18 +155,18 @@ async def async_redis_client(url, verify_ssl=True):
             await client.set("key", "value")
     """
     is_ssl_connection = url.startswith("rediss://")
-    if not is_ssl_connection or verify_ssl:
-        client = redis.Redis.from_url(url)
-    else:
+    if is_ssl_connection and not verify_ssl:
         parsed_url = urlparse(url)
         client = redis.Redis(
-            host=parsed_url.hostname,
-            port=parsed_url.port,
-            password=parsed_url.password,
+            host=parsed_url.hostname or "localhost",
+            port=parsed_url.port or 6379,
+            password=parsed_url.password or None,
             ssl=False,
             ssl_cert_reqs="none",
         )
+    else:
+        client = redis.Redis.from_url(url)
     try:
         yield client
     finally:
-        await client.close()
+        await client.aclose()

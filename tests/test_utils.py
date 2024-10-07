@@ -60,3 +60,12 @@ def test_func_to_tool():
             },
         },
     }
+
+
+@pytest.mark.asyncio
+async def test_async_redis_client():
+    async with utils.async_redis_client("redis:///") as client:
+        assert await client.ping() is True
+
+    async with utils.async_redis_client("rediss:///", False) as client:
+        assert await client.ping() is True
