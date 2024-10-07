@@ -8,10 +8,10 @@ from pathlib import Path
 
 import openai
 from openai._types import FileTypes
-from redis import asyncio as redis
 
 from . import config, utils
 from .typing import AUDIO_FORMATS, Roles, RunStatus
+from .utils import async_redis_client
 
 logger = logging.getLogger(__name__)
 
@@ -287,7 +287,9 @@ async def get_thread_id(slack_id) -> str:
     Returns:
         The thread id.
     """
-    async with redis.from_url(config.REDIS_URL) as redis_client:
+    async with async_redis_client(
+        config.REDIS_URL, config.REDIS_VERIFY_SSL
+    ) as redis_client:
         thread_id = await redis_client.get(slack_id)
         if thread_id:
             thread_id = thread_id.decode()

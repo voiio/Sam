@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import contextlib
 import enum
 import importlib
 import inspect
@@ -10,12 +11,14 @@ import typing
 from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
+from urllib.parse import urlparse
 
+import redis.asyncio as redis
 import yaml
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["func_to_tool"]
+__all__ = ["func_to_tool", "async_redis_client"]
 
 
 type_map = {
@@ -128,3 +131,42 @@ class Tool:
 
     def __call__(self, *args, **kwargs):
         return self.fn(*args, **kwargs)
+
+
+@contextlib.asynccontextmanager
+async def async_redis_client(url, verify_ssl=True):
+    """
+    Asynchronous context manager to get a Redis client.
+
+    This function provides a Redis client based on the given URL. If the URL
+    starts with 'rediss://', it is considered a secure connection. The client
+    can be configured to verify SSL certificates.
+
+    Args:
+        url (str): The Redis server URL.
+        verify_ssl (bool): Whether to verify SSL certificates for secure connections.
+                           Defaults to True.
+
+    Yields:
+        redis.Redis: An instance of the Redis client.
+
+    Example:
+        async with async_redis_client("redis://localhost:6379") as client:
+            await client.set("key", "value")
+    """
+    is_ssl_connection = url.startswith("rediss://")
+    if not is_ssl_connection or verify_ssl:
+        client = redis.Redis.from_url(url)
+    else:
+        parsed_url = urlparse(url)
+        client = redis.Redis(
+            host=parsed_url.hostname,
+            port=parsed_url.port,
+            password=parsed_url.password,
+            ssl=False,
+            ssl_cert_reqs="none",
+        )
+    try:
+        yield client
+    finally:
+        await client.close()
