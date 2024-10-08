@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import asyncio
-import contextlib
 import enum
 import importlib
 import inspect
@@ -12,12 +11,11 @@ from dataclasses import dataclass
 from functools import cached_property
 from pathlib import Path
 
-import redis.asyncio as redis
 import yaml
 
 logger = logging.getLogger(__name__)
 
-__all__ = ["func_to_tool", "async_redis_client"]
+__all__ = ["func_to_tool"]
 
 
 type_map = {
@@ -130,16 +128,3 @@ class Tool:
 
     def __call__(self, *args, **kwargs):
         return self.fn(*args, **kwargs)
-
-
-@contextlib.asynccontextmanager
-async def async_redis_client(url, ssl_cert_reqs="required"):
-    """Asynchronous context manager to get a Redis client."""
-    if url.startswith("rediss://"):
-        client = await redis.from_url(url, ssl_cert_reqs=ssl_cert_reqs)
-    else:
-        client = await redis.from_url(url)
-    try:
-        yield client
-    finally:
-        await client.aclose()

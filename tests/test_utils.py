@@ -4,7 +4,8 @@ import enum
 from unittest.mock import AsyncMock, patch
 
 import pytest
-from sam import utils
+import redis.asyncio as redis
+from sam import config, redis_utils, utils
 
 import tests.test_tools
 
@@ -64,16 +65,24 @@ def test_func_to_tool():
 
 
 @pytest.mark.asyncio
-async def test_async_redis_client():
-    with patch("redis.asyncio.from_url", AsyncMock()) as from_url:
-        async with utils.async_redis_client("redis:///") as client:
+async def test_async_redis_client(monkeypatch):
+    with patch("redis.asyncio.Redis", AsyncMock()) as redis_mock:
+        async with redis_utils.async_redis_client("redis:///") as client:
             assert client
-            from_url.assert_called_once()
-            from_url.assert_called_with("redis:///")
-            from_url.reset_mock()
+            redis_mock.assert_called_once_with()
+            redis_mock.reset_mock()
 
-        async with utils.async_redis_client("rediss:///", "none") as client:
+        async with redis_utils.async_redis_client("rediss:///") as client:
             assert client
-            from_url.assert_called_once()
-            from_url.assert_called_with("rediss:///", ssl_cert_reqs="none")
-            from_url.reset_mock()
+            redis_mock.assert_called_once_with(
+                connection_class=redis.SSLConnection, ssl_cert_reqs="required"
+            )
+            redis_mock.reset_mock()
+
+        monkeypatch.setattr(config, "REDIS_CERT_REQS", "none")
+        async with redis_utils.async_redis_client("rediss:///") as client:
+            assert client
+            redis_mock.assert_called_once_with(
+                connection_class=redis.SSLConnection, ssl_cert_reqs="none"
+            )
+            redis_mock.reset_mock()
