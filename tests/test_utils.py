@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import enum
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from sam import utils
@@ -64,8 +65,15 @@ def test_func_to_tool():
 
 @pytest.mark.asyncio
 async def test_async_redis_client():
-    async with utils.async_redis_client("redis:///") as client:
-        assert await client.ping() is True
+    with patch("redis.asyncio.from_url", AsyncMock()) as from_url:
+        async with utils.async_redis_client("redis:///") as client:
+            assert client
+            from_url.assert_called_once()
+            from_url.assert_called_with("redis:///")
+            from_url.reset_mock()
 
-    async with utils.async_redis_client("rediss:///", False) as client:
-        assert await client.ping() is True
+        async with utils.async_redis_client("rediss:///", "none") as client:
+            assert client
+            from_url.assert_called_once()
+            from_url.assert_called_with("rediss:///", ssl_cert_reqs="none")
+            from_url.reset_mock()

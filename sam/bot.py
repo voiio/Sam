@@ -288,7 +288,7 @@ async def get_thread_id(slack_id) -> str:
         The thread id.
     """
     async with async_redis_client(
-        config.REDIS_URL, config.REDIS_VERIFY_SSL
+        config.REDIS_URL, ssl_cert_reqs=config.REDIS_CERT_REQS
     ) as redis_client:
         thread_id = await redis_client.get(slack_id)
         if thread_id:
