@@ -10,7 +10,6 @@ import urllib.request
 from datetime import datetime
 from typing import Any
 
-import redis.asyncio as redis
 from slack_bolt.async_app import AsyncSay
 from slack_sdk import errors
 from slack_sdk.web.async_client import AsyncWebClient
@@ -18,7 +17,7 @@ from slack_sdk.web.client import WebClient
 
 import sam.bot
 
-from . import bot, config
+from . import bot, config, redis_utils
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +74,7 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
             files.append((file["name"], response.read()))
 
     async with (
-        redis.from_url(config.REDIS_URL) as redis_client,
+        redis_utils.async_redis_client(config.REDIS_URL) as redis_client,
         redis_client.lock(thread_id, timeout=10 * 60, thread_local=False),
     ):  # 10 minutes
         try:
@@ -150,7 +149,7 @@ async def send_response(
 
     # We may wait for the messages being processed, before starting a new run
     async with (
-        redis.from_url(config.REDIS_URL) as redis_client,
+        redis_utils.async_redis_client(config.REDIS_URL) as redis_client,
         redis_client.lock(thread_id, timeout=10 * 60),
     ):  # 10 minutes
         logger.info("User=%s starting run for Thread=%s", user_id, thread_id)

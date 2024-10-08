@@ -19,6 +19,7 @@ _TRUTHY = {"1", "true", "yes", "on"}
 # General
 #: The URL of the Redis database server.
 REDIS_URL: str = os.getenv("REDIS_URL", "redis:///")
+REDIS_CERT_REQS: str = os.getenv("REDIS_CERT_REQS", "required")
 #: How often the bot randomly responds in a group channel.
 RANDOM_RUN_RATIO: float = float(os.getenv("RANDOM_RUN_RATIO", "0"))
 #: The timezone the bot "lives" in.
