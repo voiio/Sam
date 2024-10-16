@@ -64,8 +64,12 @@
       "description": "The email address to send emails from. Disabled if not set.",
       "required": false
     },
-    "EMAIL_WHITE_LIST": {
-      "description": "A comma-separated list of email addresses to allow sending emails to. Disabled if not set.",
+    "EMAIL_WHITELIST_PATTERN": {
+      "description": "A regex pattern to match email addresses to allow sending emails to. Disabled if not set.",
+      "required": false
+    },
+    "GROUNDHOG_DAY_MODE": {
+      "description": "Whether to enable Groundhog Day mode. Defaults to false.",
       "required": false
     },
     "BRAVE_SEARCH_API_KEY": {
