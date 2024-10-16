@@ -10,6 +10,7 @@ import urllib.request
 from datetime import datetime
 from typing import Any
 
+from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 from slack_bolt.async_app import AsyncSay
 from slack_sdk import errors
 from slack_sdk.web.async_client import AsyncWebClient
@@ -203,11 +204,16 @@ def get_app():  # pragma: no cover
     return app
 
 
+async def run_slack():
+    handler = AsyncSocketModeHandler(get_app(), config.SLACK_APP_TOKEN)
+    await handler.start_async()
+
+
 def fetch_coworker_contacts(_context=None) -> str:
     """Fetch profile data about your coworkers from Slack.
 
     The profiles include:
-    - first & last name
+    - first a last name
     - email address
     - status
     - pronouns
