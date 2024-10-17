@@ -40,15 +40,9 @@ def run(verbose):
 @run.command()
 def slack():
     """Run the Slack bot demon."""
-    from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
+    from .slack import run_slack
 
-    from .slack import get_app
-
-    loop = asyncio.get_event_loop()
-
-    loop.run_until_complete(
-        AsyncSocketModeHandler(get_app(), config.SLACK_APP_TOKEN).start_async()
-    )
+    asyncio.run(run_slack())
 
 
 @cli.group(chain=True)
