@@ -21,7 +21,7 @@ def search(query: str, _context=None) -> str:
             }
         )
         try:
-            results = api.search(query)["hits"]
+            results = api.search(query).to_dict()["hits"]
         except algolia.AlgoliaSearchAPIError:
             logger.exception("Failed to search the platform for query: %s", query)
             return "search failed"

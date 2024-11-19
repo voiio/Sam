@@ -153,7 +153,7 @@ def test_platform_search_with_error():
 
 def test_platform_search_no_results():
     with mock.patch(
-        "sam.contrib.algolia.AlgoliaSearchStub.search", return_value={"hits": []}
+        "sam.contrib.algolia.SearchResponseStub.to_dict", return_value={"hits": []}
     ):
         assert sam.contrib.algolia.tools.search("something") == "no results found"
 
