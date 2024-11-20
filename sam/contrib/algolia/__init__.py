@@ -3,7 +3,7 @@
 import abc
 
 import requests
-from algoliasearch.search.client import SearchClient
+from algoliasearch.search.client import SearchClientSync
 
 from . import config
 
@@ -32,8 +32,8 @@ class AlgoliaSearch(AbstractAlgoliaSearch):  # pragma: no cover
     def __init__(self, application_id, api_key, index):
         super().__init__()
         self.api_key = api_key
-        client = SearchClient.create(application_id, api_key)
-        self.index = client.init_index(index)
+        self.client = SearchClientSync(application_id, api_key)
+        self.index_name = index
         self.params = {}
 
     def __enter__(self):
@@ -43,21 +43,22 @@ class AlgoliaSearch(AbstractAlgoliaSearch):  # pragma: no cover
         pass
 
     def search(self, query):
+        self.params.update(
+            {
+                "length": 5,
+            }
+        )
         try:
-            return self.index.search(
-                query,
-                request_options={
-                    **self.params,
-                    "length": 5,
-                },
+            return self.client.search_single_index(
+                index_name=self.index_name,
+                search_params={"query": query, **self.params},
             )
         except requests.HTTPError as e:
             raise AlgoliaSearchAPIError("The Algolia search API call failed.") from e
 
 
-class AlgoliaSearchStub(AbstractAlgoliaSearch):
+class SearchResponseStub:
     def __init__(self):
-        self.headers = {}
         self._objects = [
             {
                 "title": "Deutschland",
@@ -65,6 +66,14 @@ class AlgoliaSearchStub(AbstractAlgoliaSearch):
                 "public_url": "https://www.schulferien.org/deutschland/ferien/",
             },
         ]
+
+    def to_dict(self):
+        return {"hits": self._objects, "nbPages": 1}
+
+
+class AlgoliaSearchStub(AbstractAlgoliaSearch):
+    def __init__(self):
+        self.headers = {}
         self.params = {}
 
     def __enter__(self):
@@ -74,7 +83,7 @@ class AlgoliaSearchStub(AbstractAlgoliaSearch):
         pass
 
     def search(self, query):
-        return {"hits": self._objects, "nbPages": 1}
+        return SearchResponseStub()
 
 
 def get_client(index=None) -> AbstractAlgoliaSearch:
