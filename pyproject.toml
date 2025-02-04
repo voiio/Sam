@@ -64,7 +64,7 @@ test = [
   "psycopg",
 ]
 lint = [
-  "black==24.10.0",
+  "black==25.1.0",
   "pre-commit==4.1.0",
   "ruff==0.9.4",
 ]
