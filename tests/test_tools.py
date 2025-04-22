@@ -136,9 +136,10 @@ def test_create_github_issue__invalid_repo():
 
 
 def test_platform_search():
-    assert sam.contrib.algolia.tools.search("ferien") == json.dumps(
+    assert sam.contrib.algolia.tools.search("offers") == json.dumps(
         {
-            "Ferienangebote: Deutschland": "https://www.schulferien.org/deutschland/ferien/"
+            "Ferienangebote: Deutschland": "https://www.schulferien.org/deutschland/ferien/",
+            "Mindfulness: Yoga": "https://www.example.com/yoga/ (Starts: 1745337600)",
         }
     )
 
