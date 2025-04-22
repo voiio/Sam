@@ -17,7 +17,12 @@ def search(query: str, _context=None) -> str:
         api.params.update(
             {
                 "filters": "is_published:true",
-                "attributesToRetrieve": ["title", "parent_object_title", "public_url"],
+                "attributesToRetrieve": [
+                    "title",
+                    "parent_object_title",
+                    "public_url",
+                    "start_date",
+                ],
             }
         )
         try:
@@ -29,11 +34,14 @@ def search(query: str, _context=None) -> str:
             if not results:
                 logger.warning("No platform results found for query: %s", query)
                 return "no results found"
-            return json.dumps(
-                {
-                    f"{hit['parent_object_title']}: {hit['title']}": urljoin(
-                        "https://www.voiio.app", hit["public_url"]
-                    )
-                    for hit in results
-                }
-            )
+
+            response_dict = {}
+            for hit in results:
+                key = f"{hit['parent_object_title']}: {hit['title']}"
+                url = urljoin("https://www.voiio.app", hit["public_url"])
+                start_date = hit.get("start_date")
+                if start_date:
+                    response_dict[key] = f"{url} (Starts: {start_date})"
+                else:
+                    response_dict[key] = url
+            return json.dumps(response_dict)
