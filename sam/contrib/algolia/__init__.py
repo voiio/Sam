@@ -65,6 +65,12 @@ class SearchResponseStub:
                 "parent_object_title": "Ferienangebote",
                 "public_url": "https://www.schulferien.org/deutschland/ferien/",
             },
+            {
+                "title": "Yoga",
+                "parent_object_title": "Mindfulness",
+                "public_url": "https://www.example.com/yoga/",
+                "start_date": "1745337600",
+            },
         ]
 
     def to_dict(self):
