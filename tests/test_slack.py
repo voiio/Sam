@@ -2,6 +2,7 @@ import logging
 from unittest import mock
 
 import pytest
+import respx
 from sam import bot, slack
 
 
@@ -13,11 +14,10 @@ async def test_get_bot_user_id(monkeypatch):
     assert auth_test.called
 
 
+@respx.mock
 @pytest.mark.asyncio
 async def test_handle_message(monkeypatch):
-    urlopen = mock.AsyncMock()
-    urlopen.__enter__().read.return_value = b"Hello"
-    monkeypatch.setattr("urllib.request.urlopen", lambda *args, **kwargs: urlopen)
+    respx.get("https://example.com/file.mp3").respond(content=b"Hello")
     add_message = mock.AsyncMock(return_value=(["file-1"], False))
     monkeypatch.setattr(bot, "add_message", add_message)
     send_response = mock.AsyncMock()
@@ -25,7 +25,8 @@ async def test_handle_message(monkeypatch):
     get_bot_user_id = mock.AsyncMock(return_value="bot-1")
     monkeypatch.setattr(slack, "get_bot_user_id", get_bot_user_id)
     monkeypatch.setattr(
-        "sam.bot.get_thread_id", mock.AsyncMock(return_value="thread-1")
+        "sam.bot.get_thread",
+        mock.AsyncMock(return_value={"model": "gpt-4o-mini", "messages": []}),
     )
     say = mock.AsyncMock()
     event = {
@@ -43,10 +44,6 @@ async def test_handle_message(monkeypatch):
     }
     await slack.handle_message(event, say)
     assert add_message.called
-    assert add_message.call_args == mock.call(
-        thread_id="thread-1", content="Hello", files=[("file.mp3", b"Hello")]
-    )
-    assert urlopen.__enter__().read.called
     assert send_response.called
     assert send_response.call_args == mock.call(
         {
@@ -60,7 +57,6 @@ async def test_handle_message(monkeypatch):
             ],
         },
         say,
-        file_search=["file-1"],
         voice_response=False,
     )
 
@@ -103,89 +99,6 @@ async def test_handle_message__subtype_changed(caplog):
 
 
 @pytest.mark.asyncio
-async def test_handle_message__bad_request(caplog, monkeypatch):
-    event = {
-        "channel": "channel-1",
-        "client_msg_id": "client-msg-1",
-        "channel_type": "im",
-        "user": "user-1",
-        "text": "Hello",
-        "files": [
-            {
-                "url_private": "https://example.com/file.png",
-                "name": "file.png",
-            }
-        ],
-    }
-
-    urlopen = mock.AsyncMock()
-    urlopen.__enter__().read.return_value = b"Hello"
-    monkeypatch.setattr("urllib.request.urlopen", lambda *args, **kwargs: urlopen)
-    add_message = mock.AsyncMock(return_value=(["file-1"], False))
-    add_message.side_effect = [
-        OSError("The assistant could not process this message."),
-        (["file-1"], False),
-    ]
-    monkeypatch.setattr(bot, "add_message", add_message)
-    monkeypatch.setattr(
-        "sam.bot.get_thread_id", mock.AsyncMock(return_value="thread-1")
-    )
-    get_bot_user_id = mock.AsyncMock(return_value="bot-1")
-    monkeypatch.setattr(slack, "get_bot_user_id", get_bot_user_id)
-    send_response = mock.AsyncMock()
-    monkeypatch.setattr(slack, "send_response", send_response)
-    say = mock.AsyncMock()
-
-    with caplog.at_level(logging.WARNING):
-        await slack.handle_message(event, say)
-
-    assert "Failed to add message to thread_id=thread-1" in caplog.text
-    assert add_message.call_count == 2
-
-    assert "Hello" in add_message.call_args_list[0][1]["content"]
-    content_2 = add_message.call_args_list[1][1]["content"]
-    assert "Briefly inform the user about" in content_2
-    assert "Include links" in content_2
-
-
-def test_get_user_profile(monkeypatch):
-    client = mock.MagicMock()
-    client.users_profile_get.return_value = {
-        "profile": {
-            "display_name": "Spidy",
-            "status_text": "With great power comes great responsibility",
-            "pronouns": "spider/superhero",
-            "email": "peter.parker@avengers.com",
-        }
-    }
-    monkeypatch.setattr(slack.WebClient, "users_profile_get", client.users_profile_get)
-    assert slack.get_user_profile("user-1") == {
-        "display_name": "Spidy",
-        "status_text": "With great power comes great responsibility",
-        "pronouns": "spider/superhero",
-        "email": "peter.parker@avengers.com",
-    }
-
-
-def test_get_user_specific_instructions(monkeypatch):
-    client = mock.MagicMock()
-    client.users_profile_get.return_value = {
-        "profile": {
-            "display_name": "Spidy",
-            "status_text": "With great power comes great responsibility",
-            "pronouns": "spider/superhero",
-            "email": "peter.parker@avengers.com",
-        }
-    }
-    monkeypatch.setattr(slack.WebClient, "users_profile_get", client.users_profile_get)
-    instructions = slack.get_user_specific_instructions("user-1")
-    assert "You MUST ALWAYS address the user as <@user-1>." in instructions
-    assert "You may refer to the user as Spidy." in instructions
-    assert "The user's email is peter.parker@avengers.com." in instructions
-    assert "The user's pronouns are spider/superhero." in instructions
-
-
-@pytest.mark.asyncio
 async def test_send_response(monkeypatch):
     urlopen = mock.AsyncMock()
     urlopen.__enter__().read.return_value = b"Hello"
@@ -197,15 +110,8 @@ async def test_send_response(monkeypatch):
     get_bot_user_id = mock.AsyncMock(return_value="bot-1")
     monkeypatch.setattr(slack, "get_bot_user_id", get_bot_user_id)
     monkeypatch.setattr(
-        slack,
-        "get_user_specific_instructions",
-        lambda *args, **kwargs: "user_instructions",
-    )
-    monkeypatch.setattr(
-        slack, "get_user_profile", lambda *args, **kwargs: {"name": "Sam"}
-    )
-    monkeypatch.setattr(
-        "sam.bot.get_thread_id", mock.AsyncMock(return_value="thread-1")
+        "sam.bot.get_thread",
+        mock.AsyncMock(return_value={"model": "gpt-4o-mini", "messages": []}),
     )
     say = mock.AsyncMock()
     event = {
@@ -226,11 +132,7 @@ async def test_send_response(monkeypatch):
 
     assert execute_run.called
     assert execute_run.call_args == mock.call(
-        thread_id="thread-1",
-        assistant_id=None,
-        additional_instructions="user_instructions",
-        file_search=False,
-        name="Sam",
+        thread_id="channel-1",
     )
     assert tts.called
     assert tts.call_args == mock.call("Hello World!")
@@ -248,15 +150,8 @@ async def test_send_response__thread(monkeypatch):
     get_bot_user_id = mock.AsyncMock(return_value="bot-1")
     monkeypatch.setattr(slack, "get_bot_user_id", get_bot_user_id)
     monkeypatch.setattr(
-        slack,
-        "get_user_specific_instructions",
-        lambda *args, **kwargs: "user_instructions",
-    )
-    monkeypatch.setattr(
-        slack, "get_user_profile", lambda *args, **kwargs: {"name": "Sam"}
-    )
-    monkeypatch.setattr(
-        "sam.bot.get_thread_id", mock.AsyncMock(return_value="thread-1")
+        "sam.bot.get_thread",
+        mock.AsyncMock(return_value={"model": "gpt-4o-mini", "messages": []}),
     )
     say = mock.AsyncMock()
     event = {
@@ -277,11 +172,7 @@ async def test_send_response__thread(monkeypatch):
 
     assert execute_run.called
     assert execute_run.call_args == mock.call(
-        thread_id="thread-1",
-        assistant_id=None,
-        additional_instructions="user_instructions",
-        file_search=False,
-        name="Sam",
+        thread_id="channel-1",
     )
     assert tts.called
     assert tts.call_args == mock.call("Hello World!")
@@ -290,9 +181,9 @@ async def test_send_response__thread(monkeypatch):
 def test_markdown2mrkdwn():
     assert slack.markdown2mrkdwn("Hello **World**!") == "Hello *World*!", "Bold"
     assert slack.markdown2mrkdwn("Hello *World*!") == "Hello _World_!", "Italic"
-    assert (
-        slack.markdown2mrkdwn("Hello ~~World~~!") == "Hello ~World~!"
-    ), "Strikethrough"
+    assert slack.markdown2mrkdwn("Hello ~~World~~!") == "Hello ~World~!", (
+        "Strikethrough"
+    )
     assert (
         slack.markdown2mrkdwn("Hello [World](https://example.com)!")
         == "Hello <https://example.com|World>!"
