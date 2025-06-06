@@ -16,15 +16,15 @@ repos:
       - id: detect-private-key
   - repo: local
     hooks:
-      - id: ruff
-        name: ruff
+      - id: ruff-check
+        name: ruff check
         language: system
         entry: ruff check
         types: [python]
         args: [--fix, --exit-non-zero-on-fix]
 
-      - id: black
-        name: black
+      - id: ruff-format
+        name: ruff format
         language: system
-        entry: black
+        entry: ruff format
         types: [python]

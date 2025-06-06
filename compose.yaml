@@ -1,0 +1,38 @@
+services:
+
+  redis:
+    image: docker.io/bitnami/redis:8.0.1
+    pull_policy: always
+    volumes:
+      - redis:/bitnami/redis/data
+    restart: unless-stopped
+    environment:
+      ALLOW_EMPTY_PASSWORD: yes
+    networks:
+      - lan
+
+  sam:
+    depends_on:
+      - redis
+    build:
+      dockerfile: Containerfile
+    restart: unless-stopped
+    ports:
+      - 80:80
+      - 443:443
+    env_file:
+      - .env
+    networks:
+      - lan
+      - wan
+
+
+networks:
+  lan:
+    driver: bridge
+    internal: true
+  wan:
+    driver: bridge
+
+volumes:
+  redis:
