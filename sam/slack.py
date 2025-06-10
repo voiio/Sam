@@ -1,22 +1,19 @@
 from __future__ import annotations
 
 import functools
+import io
 import json
 import logging
 import random
 import re
-import traceback
-import urllib.request
-from datetime import datetime
 from typing import Any
 
+import httpx
 from slack_bolt.adapter.socket_mode.async_handler import AsyncSocketModeHandler
 from slack_bolt.async_app import AsyncSay
 from slack_sdk import errors
 from slack_sdk.web.async_client import AsyncWebClient
 from slack_sdk.web.client import WebClient
-
-import sam.bot
 
 from . import bot, config, redis_utils
 
@@ -63,37 +60,26 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
     channel_type = event["channel_type"]
     text = event["text"]
     text = text.replace(f"<@{bot_id}>", "Sam")
-    thread_id = await sam.bot.get_thread_id(channel_id)
     # We may only add messages to a thread while the assistant is not running
     files = []
     for file in event.get("files", []):
-        req = urllib.request.Request(  # noqa: S310
-            file["url_private"],
-            headers={"Authorization": f"Bearer {config.SLACK_BOT_TOKEN}"},
-        )
-        with urllib.request.urlopen(req) as response:  # noqa: S310
-            files.append((file["name"], response.read()))
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                file["url_private"],
+                headers={"Authorization": f"Bearer {config.SLACK_BOT_TOKEN}"},
+            )
+        response.raise_for_status()
+        files.append((file["name"], io.BytesIO(response.content)))
 
     async with (
         redis_utils.async_redis_client(config.REDIS_URL) as redis_client,
-        redis_client.lock(thread_id, timeout=10 * 60, thread_local=False),
+        redis_client.lock(channel_id, timeout=10 * 60, thread_local=False),
     ):  # 10 minutes
-        try:
-            has_attachments, has_audio = await bot.add_message(
-                thread_id=thread_id,
-                content=text,
-                files=files,
-            )
-        except OSError:
-            logger.warning(
-                "Failed to add message to thread_id=%s", thread_id, exc_info=True
-            )
-            # Only relevant for direct messages
-            if channel_type == "im" or event.get("parent_user_id") == bot_id:
-                has_attachments, has_audio = await bot.add_message(
-                    thread_id=thread_id,
-                    content=f"Briefly inform the user about: {traceback.format_exc(limit=1)} Include links.",
-                )
+        has_attachments, has_audio = await bot.add_message(
+            thread_id=channel_id,
+            content=text,
+            files=files,
+        )
 
     # we need to release the lock before starting a new run
     if (
@@ -101,9 +87,7 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
         or event.get("parent_user_id") == bot_id
         or random.random() < config.RANDOM_RUN_RATIO  # noqa: S311
     ):
-        await send_response(
-            event, say, file_search=has_attachments, voice_response=has_audio
-        )
+        await send_response(event, say, voice_response=has_audio)
 
 
 @functools.lru_cache(maxsize=128)
@@ -113,29 +97,9 @@ def get_user_profile(user_id: str) -> dict[str, Any]:
     return client.users_profile_get(user=user_id)["profile"]
 
 
-@functools.lru_cache(maxsize=128)
-def get_user_specific_instructions(user_id: str) -> str:
-    """Get the user-specific instructions."""
-    profile = get_user_profile(user_id)
-    name = profile["display_name"]
-    email = profile["email"]
-    pronouns = profile.get("pronouns")
-    local_time = datetime.now(tz=config.TIMEZONE)
-    instructions = [
-        f"You MUST ALWAYS address the user as <@{user_id}>.",
-        f"You may refer to the user as {name}.",
-        f"The user's email is {email}.",
-        f"The time is {local_time.isoformat()}.",
-    ]
-    if pronouns:
-        instructions.append(f"The user's pronouns are {pronouns}.")
-    return "\n".join(instructions)
-
-
 async def send_response(
     event: {str, Any},
     say: AsyncSay,
-    file_search: bool = False,
     voice_response: bool = False,
 ):
     """Send a response to a message event from Slack."""
@@ -146,25 +110,20 @@ async def send_response(
         timestamp = event["ts"]
     except KeyError:
         timestamp = event["thread_ts"]
-    thread_id = await sam.bot.get_thread_id(channel_id)
 
     # We may wait for the messages being processed, before starting a new run
     async with (
         redis_utils.async_redis_client(config.REDIS_URL) as redis_client,
-        redis_client.lock(thread_id, timeout=10 * 60),
+        redis_client.lock(channel_id, timeout=10 * 60),
     ):  # 10 minutes
-        logger.info("User=%s starting run for Thread=%s", user_id, thread_id)
+        logger.info("User=%s starting run for Thread=%s", user_id, channel_id)
         await say.client.reactions_add(
             channel=channel_id,
             name=random.choice(ACKNOWLEDGMENT_SMILEYS),  # noqa: S311
             timestamp=timestamp,
         )
         text_response = await bot.execute_run(
-            thread_id=thread_id,
-            assistant_id=config.OPENAI_ASSISTANT_ID,
-            additional_instructions=get_user_specific_instructions(user_id),
-            file_search=file_search,
-            **get_user_profile(user_id),
+            thread_id=channel_id,
         )
 
         msg = await say(
@@ -258,7 +217,7 @@ MD_MRKDWN_PATTERN = [
 
 
 def markdown2mrkdwn(text: str) -> str:
-    """Convert markdown to Slack's mrkdwn format."""
+    """Convert Markdown to Slack's mrkdwn format."""
     for pattern, replacement in MD_MRKDWN_PATTERN:
         text = pattern.sub(replacement, text)
     return text
