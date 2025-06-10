@@ -28,8 +28,12 @@ than most of your human colleagues 😏
 ## Installation
 
 1. Setup OpenWebUI.
-1. Clone the repository.
-2. Spin up docker-compose with `docker-compose up -d`.
+2. Clone the repository.
+3. Create your own `.env` file based on the `.env.example` file.
+   ```bash
+   cp template.env .env
+   ```
+4. Spin up docker-compose with `docker-compose up -d`.
 
 ### Create a Slack App
 
