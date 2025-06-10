@@ -59,7 +59,7 @@ async def add_message(
             files = {"file": file_content}
             async with httpx.AsyncClient() as client:
                 response = await client.post(
-                    urljoin(config.OPEN_WEBUI_URL, "/api/v1/files/") + "/",
+                    urljoin(config.OPEN_WEBUI_URL, "/api/v1/files/"),
                     headers=headers,
                     files=files,
                 )
