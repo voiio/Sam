@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import datetime
 import io
 import json
 import logging
+import time
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -107,10 +109,14 @@ async def get_thread(slack_id: str) -> dict[str, list[dict[str, str | list[dict]
         The thread id.
     """
     async with redis_utils.async_redis_client(config.REDIS_URL) as redis_client:
-        return json.loads((await redis_client.get(f"thread_{slack_id}")) or "{}") or {
+        thread = json.loads((await redis_client.get(f"thread_{slack_id}")) or "{}")
+        if not thread:
+            thread = {
+                "messages": [],
+                "files": [],
+            }
+        return thread | {
             "model": config.OPEN_WEBUI_MODEL,
-            "messages": [],
-            "files": [],
             "features": {
                 "image_generation": False,
                 "code_interpreter": False,
@@ -130,8 +136,18 @@ async def set_thread(
         slack_id: The user or channel id.
         thread: The thread to set, as a list of message dictionaries.
     """
+    # midnight
+    if config.GROUNDHOG_DAY_MODE:
+        now = datetime.datetime.now()
+        midnight = datetime.datetime.combine(
+            now.date() + datetime.timedelta(days=1), datetime.time.min
+        )
+        exat = int(time.mktime(midnight.timetuple()))
+    else:
+        exat = None
+
     async with redis_utils.async_redis_client(config.REDIS_URL) as redis_client:
-        await redis_client.set(f"thread_{slack_id}", json.dumps(thread))
+        await redis_client.set(f"thread_{slack_id}", json.dumps(thread), exat=exat)
 
 
 OPEN_WEBUI_AUTH_HEADERS = {
