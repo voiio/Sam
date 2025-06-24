@@ -171,7 +171,7 @@ async def chat_with_model(thread: dict[str, list[dict[str, str | list[dict]]]]):
     url = urljoin(config.OPEN_WEBUI_URL, "/api/chat/completions")
     async with httpx.AsyncClient() as client:
         response = await client.post(
-            url, json=thread, timeout=60, headers=OPEN_WEBUI_AUTH_HEADERS
+            url, json=thread, timeout=60 * 10, headers=OPEN_WEBUI_AUTH_HEADERS
         )
     response.raise_for_status()
     data = response.json()
