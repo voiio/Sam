@@ -111,6 +111,13 @@ async def get_thread(slack_id: str) -> dict[str, list[dict[str, str | list[dict]
             "model": config.OPEN_WEBUI_MODEL,
             "messages": [],
             "files": [],
+            "features": {
+                "image_generation": False,
+                "code_interpreter": False,
+                "web_search": True,
+                "memory": True,
+            },
+            "tool_ids": await get_tool_ids(),
         }
 
 
@@ -127,14 +134,29 @@ async def set_thread(
         await redis_client.set(f"thread_{slack_id}", json.dumps(thread))
 
 
+OPEN_WEBUI_AUTH_HEADERS = {
+    "Authorization": f"Bearer {config.OPEN_WEBUI_API_KEY}",
+    "Content-Type": "application/json",
+}
+
+
+async def get_tool_ids() -> list[str]:
+    """Get the default tools configured for an agent."""
+    url = urljoin(config.OPEN_WEBUI_URL, "/api/models")
+    async with httpx.AsyncClient() as client:
+        response = await client.get(url, headers=OPEN_WEBUI_AUTH_HEADERS, timeout=5)
+    for model in response.json()["data"]:
+        if model["id"] == config.OPEN_WEBUI_MODEL:
+            return model["info"]["meta"]["toolIds"]
+    return []
+
+
 async def chat_with_model(thread: dict[str, list[dict[str, str | list[dict]]]]):
     url = urljoin(config.OPEN_WEBUI_URL, "/api/chat/completions")
-    headers = {
-        "Authorization": f"Bearer {config.OPEN_WEBUI_API_KEY}",
-        "Content-Type": "application/json",
-    }
     async with httpx.AsyncClient() as client:
-        response = await client.post(url, headers=headers, json=thread, timeout=60)
+        response = await client.post(
+            url, json=thread, timeout=60, headers=OPEN_WEBUI_AUTH_HEADERS
+        )
     response.raise_for_status()
     data = response.json()
     if "choices" in data and data["choices"]:
