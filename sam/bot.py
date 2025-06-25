@@ -120,8 +120,8 @@ async def get_thread(slack_id: str) -> dict[str, list[dict[str, str | list[dict]
             "features": {
                 "image_generation": False,
                 "code_interpreter": False,
-                "web_search": True,
-                "memory": True,
+                "web_search": False,
+                "memory": False,
             },
             "tool_ids": await get_tool_ids(),
         }
