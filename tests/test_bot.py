@@ -42,14 +42,8 @@ async def test_get_tool_ids_success(monkeypatch):
     respx.get("https://example.com/api/models").respond(
         json={
             "data": [
-                {
-                    "id": "test-model",
-                    "info": {"meta": {"toolIds": ["tool1", "tool2"]}}
-                },
-                {
-                    "id": "other-model",
-                    "info": {"meta": {"toolIds": ["tool3"]}}
-                }
+                {"id": "test-model", "info": {"meta": {"toolIds": ["tool1", "tool2"]}}},
+                {"id": "other-model", "info": {"meta": {"toolIds": ["tool3"]}}},
             ]
         }
     )
@@ -78,9 +72,7 @@ async def test_get_tool_ids_missing_data_key(monkeypatch):
     monkeypatch.setattr("sam.config.OPEN_WEBUI_URL", "https://example.com")
     monkeypatch.setattr("sam.config.OPEN_WEBUI_MODEL", "test-model")
 
-    respx.get("https://example.com/api/models").respond(
-        json={"error": "some error"}
-    )
+    respx.get("https://example.com/api/models").respond(json={"error": "some error"})
 
     result = await bot.get_tool_ids()
     assert result == []
@@ -94,14 +86,7 @@ async def test_get_tool_ids_model_not_found(monkeypatch):
     monkeypatch.setattr("sam.config.OPEN_WEBUI_MODEL", "missing-model")
 
     respx.get("https://example.com/api/models").respond(
-        json={
-            "data": [
-                {
-                    "id": "other-model",
-                    "info": {"meta": {"toolIds": ["tool1"]}}
-                }
-            ]
-        }
+        json={"data": [{"id": "other-model", "info": {"meta": {"toolIds": ["tool1"]}}}]}
     )
 
     result = await bot.get_tool_ids()
