@@ -159,11 +159,18 @@ OPEN_WEBUI_AUTH_HEADERS = {
 async def get_tool_ids() -> list[str]:
     """Get the default tools configured for an agent."""
     url = urljoin(config.OPEN_WEBUI_URL, "/api/models")
-    async with httpx.AsyncClient() as client:
-        response = await client.get(url, headers=OPEN_WEBUI_AUTH_HEADERS, timeout=5)
-    for model in response.json()["data"]:
-        if model["id"] == config.OPEN_WEBUI_MODEL:
-            return model["info"]["meta"]["toolIds"]
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(url, headers=OPEN_WEBUI_AUTH_HEADERS, timeout=5)
+        response.raise_for_status()
+        response_data = response.json()
+        if "data" not in response_data:
+            return []
+        for model in response_data["data"]:
+            if model["id"] == config.OPEN_WEBUI_MODEL:
+                return model["info"]["meta"]["toolIds"]
+    except (httpx.HTTPStatusError, httpx.RequestError, KeyError, ValueError):
+        logger.exception("Failed to get tool IDs")
     return []
 
 
