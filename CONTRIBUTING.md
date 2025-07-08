@@ -8,6 +8,23 @@ To install the dependencies, run the following command:
 python -m pip install -r '.[test,lint]'
 ```
 
+### Running a local instance
+
+You can run sam locally in your terminal by running the following command:
+```bash
+sam run -v slack
+```
+
+You may also use Docker to run Sam. To do so, first ensure you have Docker and Docker Compose installed.
+
+```bash
+cp .env.example .env
+# Edit the .env file to set your environment variables
+docker-compose up --build
+```
+
+### Running Tests
+
 To run the tests, run the following command:
 
 ```bash
