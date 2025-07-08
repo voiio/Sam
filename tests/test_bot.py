@@ -37,6 +37,7 @@ async def test_stt(client):
 async def test_get_tool_ids_success(monkeypatch):
     """Test get_tool_ids returns correct tool IDs on successful response."""
     monkeypatch.setattr("sam.config.OPEN_WEBUI_URL", "https://example.com")
+    monkeypatch.setattr("sam.config.OPEN_WEBUI_API_KEY", "valid-key")
     monkeypatch.setattr("sam.config.OPEN_WEBUI_MODEL", "test-model")
 
     respx.get("https://example.com/api/models").respond(
@@ -57,6 +58,7 @@ async def test_get_tool_ids_success(monkeypatch):
 async def test_get_tool_ids_http_error(monkeypatch):
     """Test get_tool_ids returns empty list on HTTP error."""
     monkeypatch.setattr("sam.config.OPEN_WEBUI_URL", "https://example.com")
+    monkeypatch.setattr("sam.config.OPEN_WEBUI_API_KEY", "valid-key")
     monkeypatch.setattr("sam.config.OPEN_WEBUI_MODEL", "test-model")
 
     respx.get("https://example.com/api/models").respond(401)
@@ -70,6 +72,7 @@ async def test_get_tool_ids_http_error(monkeypatch):
 async def test_get_tool_ids_missing_data_key(monkeypatch):
     """Test get_tool_ids returns empty list when 'data' key is missing."""
     monkeypatch.setattr("sam.config.OPEN_WEBUI_URL", "https://example.com")
+    monkeypatch.setattr("sam.config.OPEN_WEBUI_API_KEY", "valid-key")
     monkeypatch.setattr("sam.config.OPEN_WEBUI_MODEL", "test-model")
 
     respx.get("https://example.com/api/models").respond(json={"error": "some error"})
@@ -83,6 +86,7 @@ async def test_get_tool_ids_missing_data_key(monkeypatch):
 async def test_get_tool_ids_model_not_found(monkeypatch):
     """Test get_tool_ids returns empty list when model is not found."""
     monkeypatch.setattr("sam.config.OPEN_WEBUI_URL", "https://example.com")
+    monkeypatch.setattr("sam.config.OPEN_WEBUI_API_KEY", "valid-key")
     monkeypatch.setattr("sam.config.OPEN_WEBUI_MODEL", "missing-model")
 
     respx.get("https://example.com/api/models").respond(
@@ -97,6 +101,7 @@ async def test_get_tool_ids_model_not_found(monkeypatch):
 async def test_get_tool_ids_network_error(monkeypatch):
     """Test get_tool_ids returns empty list on network error."""
     monkeypatch.setattr("sam.config.OPEN_WEBUI_URL", "https://example.com")
+    monkeypatch.setattr("sam.config.OPEN_WEBUI_API_KEY", "valid-key")
     monkeypatch.setattr("sam.config.OPEN_WEBUI_MODEL", "test-model")
 
     # Mock httpx.AsyncClient to raise a RequestError
@@ -106,5 +111,21 @@ async def test_get_tool_ids_network_error(monkeypatch):
     with mock.patch("httpx.AsyncClient") as mock_client:
         mock_client.return_value.__aenter__.return_value.get = mock_get
 
+        result = await bot.get_tool_ids()
+        assert result == []
+
+
+@pytest.mark.asyncio
+async def test_get_tool_ids_missing_config():
+    """Test get_tool_ids returns empty list when config is missing."""
+    with mock.patch("sam.config.OPEN_WEBUI_URL", None):
+        result = await bot.get_tool_ids()
+        assert result == []
+
+    with mock.patch("sam.config.OPEN_WEBUI_API_KEY", None):
+        result = await bot.get_tool_ids()
+        assert result == []
+
+    with mock.patch("sam.config.OPEN_WEBUI_MODEL", None):
         result = await bot.get_tool_ids()
         assert result == []

@@ -158,6 +158,17 @@ OPEN_WEBUI_AUTH_HEADERS = {
 
 async def get_tool_ids() -> list[str]:
     """Get the default tools configured for an agent."""
+    # Validate required configuration
+    if not config.OPEN_WEBUI_URL:
+        logger.warning("OPEN_WEBUI_URL not configured")
+        return []
+    if not config.OPEN_WEBUI_API_KEY:
+        logger.warning("OPEN_WEBUI_API_KEY not configured")
+        return []
+    if not config.OPEN_WEBUI_MODEL:
+        logger.warning("OPEN_WEBUI_MODEL not configured")
+        return []
+
     url = urljoin(config.OPEN_WEBUI_URL, "/api/models")
     try:
         async with httpx.AsyncClient() as client:
@@ -165,12 +176,19 @@ async def get_tool_ids() -> list[str]:
         response.raise_for_status()
         response_data = response.json()
         if "data" not in response_data:
+            logger.warning("OpenWebUI API response missing 'data' field")
             return []
         for model in response_data["data"]:
             if model["id"] == config.OPEN_WEBUI_MODEL:
                 return model["info"]["meta"]["toolIds"]
-    except (httpx.HTTPStatusError, httpx.RequestError, KeyError, ValueError):
-        logger.exception("Failed to get tool IDs")
+        logger.warning("Model '%s' not found in OpenWebUI", config.OPEN_WEBUI_MODEL)
+    except httpx.HTTPStatusError as e:
+        if e.response.status_code == 401:
+            logger.error("OpenWebUI authentication failed - check OPEN_WEBUI_API_KEY")
+        else:
+            logger.error("OpenWebUI API error: %s", e)
+    except (httpx.RequestError, KeyError, ValueError):
+        logger.exception("Failed to get tool IDs from OpenWebUI")
     return []
 
 
