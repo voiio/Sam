@@ -43,6 +43,23 @@ than most of your human colleagues 😏
 4. Copy the `Bot User OAuth Access Token` and add it to your environment as `SLACK_BOT_TOKEN`.
 5. Create a new `App-Level Tokens` under `Basic Infomation` and add it to your environment as `SLACK_APP_TOKEN`.
 
+### User Whitelisting (Optional)
+
+Sam supports user whitelisting to restrict who can interact with the bot. This is useful for controlling access in larger Slack workspaces.
+
+To enable whitelisting:
+1. Add the `WHITELISTED_USERS` environment variable to your `.env` file
+2. Set it to a comma-separated list of Slack user IDs
+3. Example: `WHITELISTED_USERS=U1234567890,U0987654321,U1122334455`
+
+**Finding Slack User IDs:**
+- In Slack, click on a user's profile
+- Click "More" → "Copy member ID"
+- Or use the format from user mentions in Slack (the part after `@`)
+
+If `WHITELISTED_USERS` is empty or not set, all users can interact with Sam (default behavior).
+
+When a non-whitelisted user tries to interact with Sam, the bot will silently ignore their messages.
 
 ### How it works
 
