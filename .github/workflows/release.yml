@@ -24,7 +24,7 @@ jobs:
       - run: pydoc-markdown
       - run: mkdocs build
       - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v4
         with:
           path: 'site'
       - id: deployment
