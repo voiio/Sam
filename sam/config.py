@@ -41,6 +41,10 @@ GROUNDHOG_DAY_MODE: bool = os.getenv("GROUNDHOG_DAY_MODE", "false").lower() in _
 SLACK_BOT_TOKEN: str = os.getenv("SLACK_BOT_TOKEN")
 #: The Slack app token, prefixed with `xapp-`.
 SLACK_APP_TOKEN: str = os.getenv("SLACK_APP_TOKEN")
+#: Comma-separated list of Slack user IDs allowed to interact with the bot. If empty, all users are allowed.
+WHITELISTED_USERS: list[str] = [
+    user.strip() for user in os.getenv("WHITELISTED_USERS", "").split(",") if user.strip()
+]
 
 # Sentry
 #: The Sentry DSN for Sentry based error reporting.
