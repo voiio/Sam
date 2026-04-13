@@ -44,7 +44,7 @@ dependencies = [
   "click",
   "redis",
   "slack-bolt",
-  "openai>=1.21.0",
+  "openai>=2.31.0",
   "sentry-sdk",
 ]
 
