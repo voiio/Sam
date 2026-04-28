@@ -60,7 +60,7 @@ test = [
   "respx",
 ]
 lint = [
-  "pre-commit==4.5.1",
+  "pre-commit==4.6.0",
   "ruff==0.15.11",
 ]
 docs = [
