@@ -61,7 +61,7 @@ test = [
 ]
 lint = [
   "pre-commit==4.6.0",
-  "ruff==0.15.12",
+  "ruff==0.15.13",
 ]
 docs = [
   "pydoc-markdown",
