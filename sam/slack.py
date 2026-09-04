@@ -55,6 +55,13 @@ async def handle_message(event: {str, Any}, say: AsyncSay):
     if event.get("subtype") in ["message_changed", "message_deleted"]:
         logger.debug("Ignoring `%s` event", event["subtype"])
         return
+    
+    # Check if user is whitelisted (if whitelist is configured)
+    user_id = event.get("user")
+    if config.WHITELISTED_USERS and user_id not in config.WHITELISTED_USERS:
+        logger.debug("Ignoring message from non-whitelisted user: %s", user_id)
+        return
+    
     bot_id = await get_bot_user_id()
     channel_id = event["channel"]
     channel_type = event["channel_type"]
@@ -103,9 +110,14 @@ async def send_response(
     voice_response: bool = False,
 ):
     """Send a response to a message event from Slack."""
+    # Check if user is whitelisted (if whitelist is configured)
+    user_id = event["user"]
+    if config.WHITELISTED_USERS and user_id not in config.WHITELISTED_USERS:
+        logger.debug("Ignoring response request from non-whitelisted user: %s", user_id)
+        return
+    
     logger.debug("process_run=%s", json.dumps(event))
     channel_id = event["channel"]
-    user_id = event["user"]
     try:
         timestamp = event["ts"]
     except KeyError:
