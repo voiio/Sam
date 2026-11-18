@@ -6,3 +6,4 @@ Containerfile compose.yaml @herrbenesch @codingjoe
 ## GitHub Actions
 .github/workflows/ci.yml @herrbenesch
 .github/workflows/release.yml @herrbenesch
+.github/workflows/actions.lock @herrbenesch
